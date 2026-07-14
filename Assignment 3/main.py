@@ -185,4 +185,3 @@ if user_input := st.chat_input("💬 Type your message..."):
         }
     )
 st.divider()
-st.caption("🌟 AI Multiverse | Built with Streamlit + Google Gemini 2.5 Flash")
