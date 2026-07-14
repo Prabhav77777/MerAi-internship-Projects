@@ -174,11 +174,9 @@ Conversation History:
 # -------------------------------------------------
 if user_input := st.chat_input("💬 Type your message..."):
 
-    # Display User Message
     with st.chat_message("user"):
         st.markdown(user_input)
 
-    # Save User Message
     st.session_state.messages.append(
         {
             "role": "user",
@@ -186,7 +184,6 @@ if user_input := st.chat_input("💬 Type your message..."):
         }
     )
 
-    # Generate AI Response
     with st.spinner(f"🤖 {personality} is thinking..."):
 
         try:
@@ -200,20 +197,14 @@ if user_input := st.chat_input("💬 Type your message..."):
         except Exception as e:
             answer = f"❌ Error: {e}"
 
-    # Display AI Response
     with st.chat_message("assistant"):
         st.markdown(answer)
 
-    # Save AI Response
     st.session_state.messages.append(
         {
             "role": "assistant",
             "content": answer
         }
     )
-
-# -------------------------------------------------
-# Footer
-# -------------------------------------------------
 st.divider()
 st.caption("🌟 AI Multiverse | Built with Streamlit + Google Gemini 2.5 Flash")
