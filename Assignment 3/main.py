@@ -3,9 +3,6 @@ from google import genai
 from dotenv import load_dotenv
 import os
 
-# -------------------------------------------------
-# Load API Key
-# -------------------------------------------------
 load_dotenv()
 api_key = os.getenv("GEMINI_API_KEY")
 
@@ -15,9 +12,7 @@ if not api_key:
 
 client = genai.Client(api_key=api_key)
 
-# -------------------------------------------------
-# Page Config
-# -------------------------------------------------
+
 st.set_page_config(
     page_title="🌍 AI Multiverse",
     page_icon="🤖",
@@ -27,9 +22,7 @@ st.set_page_config(
 st.title("🌍 AI Multiverse")
 st.caption("Chat with unique AI personalities powered by Gemini 2.5 Flash")
 
-# -------------------------------------------------
-# Personality Prompts
-# -------------------------------------------------
+
 PROMPTS = {
 
     "🤖 Robot Learning Emotions":
@@ -109,9 +102,7 @@ PROMPTS = {
     """
 }
 
-# -------------------------------------------------
-# Sidebar
-# -------------------------------------------------
+
 st.sidebar.title("⚙️ Settings")
 
 personality = st.sidebar.selectbox(
@@ -132,25 +123,16 @@ st.sidebar.markdown("---")
 st.sidebar.success("✅ Memory Enabled")
 st.sidebar.info("Powered by Google Gemini 2.5 Flash")
 
-# -------------------------------------------------
-# Session State
-# -------------------------------------------------
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# -------------------------------------------------
-# Display Chat History
-# -------------------------------------------------
+
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
 if len(st.session_state.messages) == 0:
     st.info("👋 Welcome! Choose a personality and start chatting.")
-
-# -------------------------------------------------
-# Build Conversation Prompt
-# -------------------------------------------------
 def build_prompt():
 
     prompt = f"""
@@ -168,10 +150,6 @@ Conversation History:
     prompt += "\nAssistant:"
 
     return prompt
-
-# -------------------------------------------------
-# Chat Input
-# -------------------------------------------------
 if user_input := st.chat_input("💬 Type your message..."):
 
     with st.chat_message("user"):
