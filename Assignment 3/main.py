@@ -164,4 +164,4 @@ if inp := st.chat_input("💬 Type your message..."):
     )
 
 st.divider()
-st.caption("🌟 AI Multiverse | Built with Streamlit + Google Gemini 2.5 Flash")
+st.caption("Made with ❤️ by Prabhav Agrawal | Powered by Streamlit & Gemini")
