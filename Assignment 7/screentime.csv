@@ -1,0 +1,166 @@
+Date,App_Name,Category,Minutes_Used
+2026-07-21,TikTok,Social Media,62
+2026-07-21,VS Code,Coding,53
+2026-07-21,YouTube,Entertainment,42
+2026-07-21,Instagram,Social Media,34
+2026-07-21,Spotify,Entertainment,30
+2026-07-21,Terminal,Coding,21
+2026-07-21,GitHub,Coding,17
+2026-07-21,Gmail,Productivity,14
+2026-07-21,Slack,Productivity,14
+2026-07-21,Khan Academy,Education,13
+2026-07-21,Kindle,Education,11
+2026-07-21,Duolingo,Education,5
+2026-07-22,VS Code,Coding,72
+2026-07-22,TikTok,Social Media,48
+2026-07-22,YouTube,Entertainment,42
+2026-07-22,Instagram,Social Media,36
+2026-07-22,Spotify,Entertainment,18
+2026-07-22,X (Twitter),Social Media,17
+2026-07-22,Slack,Productivity,14
+2026-07-22,Terminal,Coding,13
+2026-07-22,Khan Academy,Education,13
+2026-07-22,GitHub,Coding,10
+2026-07-22,Duolingo,Education,10
+2026-07-22,Gmail,Productivity,10
+2026-07-23,VS Code,Coding,75
+2026-07-23,TikTok,Social Media,49
+2026-07-23,Instagram,Social Media,44
+2026-07-23,YouTube,Entertainment,41
+2026-07-23,Spotify,Entertainment,29
+2026-07-23,Slack,Productivity,20
+2026-07-23,Terminal,Coding,16
+2026-07-23,Kindle,Education,13
+2026-07-23,Gmail,Productivity,12
+2026-07-23,Khan Academy,Education,11
+2026-07-23,Duolingo,Education,9
+2026-07-24,YouTube,Entertainment,63
+2026-07-24,TikTok,Social Media,60
+2026-07-24,VS Code,Coding,57
+2026-07-24,Netflix,Entertainment,31
+2026-07-24,Instagram,Social Media,29
+2026-07-24,Spotify,Entertainment,23
+2026-07-24,X (Twitter),Social Media,20
+2026-07-24,Slack,Productivity,19
+2026-07-24,Kindle,Education,18
+2026-07-24,GitHub,Coding,16
+2026-07-24,Terminal,Coding,16
+2026-07-24,Khan Academy,Education,13
+2026-07-24,Gmail,Productivity,10
+2026-07-24,Duolingo,Education,9
+2026-07-25,YouTube,Entertainment,67
+2026-07-25,TikTok,Social Media,63
+2026-07-25,Instagram,Social Media,45
+2026-07-25,Spotify,Entertainment,31
+2026-07-25,VS Code,Coding,23
+2026-07-25,Duolingo,Education,10
+2026-07-25,Slack,Productivity,10
+2026-07-25,Terminal,Coding,9
+2026-07-25,Kindle,Education,8
+2026-07-25,GitHub,Coding,7
+2026-07-26,YouTube,Entertainment,75
+2026-07-26,Netflix,Entertainment,57
+2026-07-26,Instagram,Social Media,53
+2026-07-26,X (Twitter),Social Media,36
+2026-07-26,Spotify,Entertainment,23
+2026-07-26,Kindle,Education,12
+2026-07-26,Duolingo,Education,10
+2026-07-26,Slack,Productivity,6
+2026-07-26,GitHub,Coding,5
+2026-07-26,Terminal,Coding,5
+2026-07-26,Gmail,Productivity,3
+2026-07-27,VS Code,Coding,68
+2026-07-27,TikTok,Social Media,66
+2026-07-27,YouTube,Entertainment,47
+2026-07-27,Netflix,Entertainment,32
+2026-07-27,Spotify,Entertainment,30
+2026-07-27,Instagram,Social Media,24
+2026-07-27,Terminal,Coding,17
+2026-07-27,Slack,Productivity,17
+2026-07-27,GitHub,Coding,16
+2026-07-27,Gmail,Productivity,15
+2026-07-27,Duolingo,Education,11
+2026-07-27,Khan Academy,Education,10
+2026-07-28,VS Code,Coding,59
+2026-07-28,YouTube,Entertainment,50
+2026-07-28,TikTok,Social Media,42
+2026-07-28,Instagram,Social Media,42
+2026-07-28,Netflix,Entertainment,28
+2026-07-28,X (Twitter),Social Media,25
+2026-07-28,Spotify,Entertainment,20
+2026-07-28,Terminal,Coding,20
+2026-07-28,Kindle,Education,17
+2026-07-28,Slack,Productivity,17
+2026-07-28,GitHub,Coding,16
+2026-07-28,Duolingo,Education,14
+2026-07-28,Gmail,Productivity,7
+2026-07-29,VS Code,Coding,63
+2026-07-29,YouTube,Entertainment,44
+2026-07-29,Instagram,Social Media,41
+2026-07-29,Netflix,Entertainment,24
+2026-07-29,X (Twitter),Social Media,22
+2026-07-29,Slack,Productivity,19
+2026-07-29,Spotify,Entertainment,16
+2026-07-29,Terminal,Coding,16
+2026-07-29,Kindle,Education,15
+2026-07-29,Gmail,Productivity,13
+2026-07-29,GitHub,Coding,10
+2026-07-29,Duolingo,Education,10
+2026-07-29,Khan Academy,Education,9
+2026-07-30,YouTube,Entertainment,88
+2026-07-30,TikTok,Social Media,62
+2026-07-30,VS Code,Coding,48
+2026-07-30,Instagram,Social Media,39
+2026-07-30,Netflix,Entertainment,37
+2026-07-30,Terminal,Coding,32
+2026-07-30,Spotify,Entertainment,29
+2026-07-30,X (Twitter),Social Media,23
+2026-07-30,Khan Academy,Education,15
+2026-07-30,Gmail,Productivity,8
+2026-07-30,Duolingo,Education,5
+2026-07-31,VS Code,Coding,68
+2026-07-31,TikTok,Social Media,56
+2026-07-31,YouTube,Entertainment,47
+2026-07-31,Instagram,Social Media,29
+2026-07-31,Spotify,Entertainment,24
+2026-07-31,Slack,Productivity,19
+2026-07-31,GitHub,Coding,18
+2026-07-31,Terminal,Coding,18
+2026-07-31,Khan Academy,Education,15
+2026-07-31,Gmail,Productivity,15
+2026-07-31,X (Twitter),Social Media,10
+2026-07-31,Kindle,Education,10
+2026-07-31,Duolingo,Education,8
+2026-08-01,VS Code,Coding,34
+2026-08-01,X (Twitter),Social Media,31
+2026-08-01,Spotify,Entertainment,26
+2026-08-01,Khan Academy,Education,13
+2026-08-01,Terminal,Coding,11
+2026-08-01,Netflix,Entertainment,8
+2026-08-01,Duolingo,Education,6
+2026-08-01,Slack,Productivity,5
+2026-08-01,Gmail,Productivity,4
+2026-08-02,TikTok,Social Media,108
+2026-08-02,YouTube,Entertainment,72
+2026-08-02,Instagram,Social Media,34
+2026-08-02,Spotify,Entertainment,30
+2026-08-02,X (Twitter),Social Media,27
+2026-08-02,Kindle,Education,12
+2026-08-02,Duolingo,Education,11
+2026-08-02,Terminal,Coding,10
+2026-08-02,Khan Academy,Education,10
+2026-08-02,GitHub,Coding,7
+2026-08-02,Slack,Productivity,6
+2026-08-02,Gmail,Productivity,4
+2026-08-03,VS Code,Coding,65
+2026-08-03,TikTok,Social Media,63
+2026-08-03,YouTube,Entertainment,54
+2026-08-03,Netflix,Entertainment,40
+2026-08-03,Instagram,Social Media,33
+2026-08-03,Spotify,Entertainment,25
+2026-08-03,Kindle,Education,19
+2026-08-03,Terminal,Coding,16
+2026-08-03,GitHub,Coding,15
+2026-08-03,Duolingo,Education,15
+2026-08-03,Khan Academy,Education,14
+2026-08-03,Slack,Productivity,12
