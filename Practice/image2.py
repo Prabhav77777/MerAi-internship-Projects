@@ -19,13 +19,22 @@ response3 = rq.get(url3)
 url4 = "https://image.pollinations.ai/prompt/" + prompt1+"style=realistic"
 response4 = rq.get(url4)
 if st.button("Generate Image"):
-    st.write("Generating images for the prompt: ", prompt1)
-    with st.spinner("Generating image..."):
-        if response1.status_code == 200:
-            st.image(response1.content, caption="Anime Style")
-        if response2.status_code == 200:
-            st.image(response2.content, caption="Cartoon Style")
-        if response3.status_code == 200:
-            st.image(response3.content, caption="Sketch Style")
-        if response4.status_code == 200:
-            st.image(response4.content, caption="Realistic Style")
+    if(prompt1):
+        st.write("Generating images for the prompt: ", prompt1)
+        with st.spinner("Generating image..."):
+            if response1.status_code == 200:
+                st.image(response1.content, caption="Anime Style")
+                st.download_button(
+                    label="Download Anime Style Image",
+                    data=response1.content,
+                    file_name="anime_style_image.png",
+                    mime="image/png"
+                )
+            if response2.status_code == 200:
+                st.image(response2.content, caption="Cartoon Style")
+            if response3.status_code == 200:
+                st.image(response3.content, caption="Sketch Style")
+            if response4.status_code == 200:
+                st.image(response4.content, caption="Realistic Style")
+    else:
+        st.error(" enter a prompt for image generation.")
