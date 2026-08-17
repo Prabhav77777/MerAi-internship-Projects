@@ -59,8 +59,9 @@ st.sidebar.download_button(
 )
 if st.sidebar.button("Clear Chat History"):
     st.session_state.msg = []
-    
+    st.rerun()
 
+    
 
 
 
