@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Toggle Example</title>
+
+    <style>
+        .red {
+            color: red;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1 id="text">hello</h1>
+
+    <script>
+        const heading = document.querySelector("#text");
+
+        heading.addEventListener("click", function () {
+            heading.classList.toggle("red");
+        });
+    </script>
+
+</body>
+</html>
