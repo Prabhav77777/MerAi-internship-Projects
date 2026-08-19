@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 from groq import Groq
 from pypdf import PdfReader
 import json
-
+from pdf_generator import generate_resume_pdf
 load_dotenv()
 
 st.title("Resume Optimizer")
@@ -228,15 +228,13 @@ Do not wrap the JSON in ```json or any other markdown code block.
 
                 optimized_resume = response.choices[0].message.content
                 resume_data = json.loads(optimized_resume)
+                pdf_data = generate_resume_pdf(resume_data)
 
             # Display result
             with col2:
-
-                st.subheader("Optimized Resume")
-
-                with st.container(border=True):
-                    st.text_area(
-                        "Optimized Resume",
-                        value=resume_data,
-                        height=400
-                    )
+                st.download_button(
+    label="Download Optimized Resume",
+    data=pdf_data,
+    file_name="optimized_resume.pdf",
+    mime="application/pdf"
+                )
