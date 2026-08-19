@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+
+    <style>
+        @page {
+            size: A4;
+            margin: 14mm 16mm;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 9.5pt;
+            line-height: 1.3;
+            color: #222;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 12px;
+        }
+
+        .name {
+            font-size: 20pt;
+            font-weight: 700;
+            margin-bottom: 5px;
+            letter-spacing: 0.3px;
+        }
+
+        .contact {
+            font-size: 8.5pt;
+            line-height: 1.4;
+        }
+
+        .section {
+            margin-top: 10px;
+        }
+
+        .section-title {
+            font-size: 10.5pt;
+            font-weight: 700;
+            color: #1f4e79;
+            border-bottom: 1px solid #1f4e79;
+            padding-bottom: 2px;
+            margin-bottom: 6px;
+            letter-spacing: 0.2px;
+        }
+
+        .summary {
+            margin: 0;
+            text-align: justify;
+        }
+
+        .entry {
+            margin-bottom: 7px;
+            break-inside: avoid;
+            page-break-inside: avoid;
+        }
+
+        .entry-header {
+            width: 100%;
+            font-weight: 700;
+        }
+
+        .entry-header table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .entry-header td {
+            padding: 0;
+            vertical-align: top;
+        }
+
+        .entry-title {
+            font-weight: 700;
+        }
+
+        .date {
+            text-align: right;
+            white-space: nowrap;
+            font-weight: 400;
+        }
+
+        .subtitle {
+            margin-top: 1px;
+        }
+
+        .technologies {
+            margin-top: 2px;
+            font-size: 8.5pt;
+            font-style: italic;
+        }
+
+        ul {
+            margin-top: 3px;
+            margin-bottom: 0;
+            padding-left: 17px;
+        }
+
+        li {
+            margin-bottom: 2px;
+            padding-left: 1px;
+        }
+
+        .skill-line {
+            margin-bottom: 3px;
+        }
+
+        .skill-category {
+            font-weight: 700;
+        }
+
+        .coursework {
+            margin: 0;
+        }
+
+        .section,
+        .entry {
+            orphans: 2;
+            widows: 2;
+        }
+    </style>
+</head>
+
+
+<body>
+
+    <!-- ========================= -->
+    <!-- HEADER -->
+    <!-- ========================= -->
+
+    <header class="header">
+
+        <div class="name">
+            {{ resume.name }}
+        </div>
+
+        <div class="contact">
+
+            {% if resume.contact.email %}
+                {{ resume.contact.email }}
+            {% endif %}
+
+            {% if resume.contact.phone %}
+                | {{ resume.contact.phone }}
+            {% endif %}
+
+            {% if resume.contact.linkedin %}
+                | {{ resume.contact.linkedin }}
+            {% endif %}
+
+            {% if resume.contact.github %}
+                | {{ resume.contact.github }}
+            {% endif %}
+
+            {% if resume.contact.portfolio %}
+                | {{ resume.contact.portfolio }}
+            {% endif %}
+
+        </div>
+
+    </header>
+
+
+    <!-- ========================= -->
+    <!-- PROFESSIONAL SUMMARY -->
+    <!-- ========================= -->
+
+    {% if resume.summary %}
+
+    <section class="section">
+
+        <div class="section-title">
+            PROFESSIONAL SUMMARY
+        </div>
+
+        <p class="summary">
+            {{ resume.summary }}
+        </p>
+
+    </section>
+
+    {% endif %}
+
+
+    <!-- ========================= -->
+    <!-- EDUCATION -->
+    <!-- ========================= -->
+
+    {% if resume.education %}
+
+    <section class="section">
+
+        <div class="section-title">
+            EDUCATION
+        </div>
+
+        {% for education in resume.education %}
+
+        <div class="entry">
+
+            <div class="entry-header">
+
+                <table>
+                    <tr>
+
+                        <td>
+                            {{ education.institution }}
+                        </td>
+
+                        {% if education.start_date or education.end_date %}
+
+                        <td class="date">
+
+                            {% if education.start_date %}
+                                {{ education.start_date }}
+                            {% endif %}
+
+                            {% if education.start_date and education.end_date %}
+                                –
+                            {% endif %}
+
+                            {% if education.end_date %}
+                                {{ education.end_date }}
+                            {% endif %}
+
+                        </td>
+
+                        {% endif %}
+
+                    </tr>
+                </table>
+
+            </div>
+
+
+            <div class="subtitle">
+
+                {% if education.degree %}
+                    {{ education.degree }}
+                {% endif %}
+
+                {% if education.field %}
+                    in {{ education.field }}
+                {% endif %}
+
+                {% if education.location %}
+                    | {{ education.location }}
+                {% endif %}
+
+            </div>
+
+
+            {% if education.details %}
+
+            <div>
+                {{ education.details }}
+            </div>
+
+            {% endif %}
+
+        </div>
+
+        {% endfor %}
+
+    </section>
+
+    {% endif %}
+
+
+    <!-- ========================= -->
+    <!-- EXPERIENCE -->
+    <!-- ========================= -->
+
+    {% if resume.experience %}
+
+    <section class="section">
+
+        <div class="section-title">
+            EXPERIENCE
+        </div>
+
+        {% for experience in resume.experience %}
+
+        <div class="entry">
+
+            <div class="entry-header">
+
+                <table>
+                    <tr>
+
+                        <td>
+                            {{ experience.company }}
+                        </td>
+
+                        {% if experience.start_date or experience.end_date %}
+
+                        <td class="date">
+
+                            {% if experience.start_date %}
+                                {{ experience.start_date }}
+                            {% endif %}
+
+                            {% if experience.start_date and experience.end_date %}
+                                –
+                            {% endif %}
+
+                            {% if experience.end_date %}
+                                {{ experience.end_date }}
+                            {% endif %}
+
+                        </td>
+
+                        {% endif %}
+
+                    </tr>
+                </table>
+
+            </div>
+
+
+            <div class="subtitle">
+
+                {% if experience.role %}
+                    {{ experience.role }}
+                {% endif %}
+
+                {% if experience.location %}
+                    | {{ experience.location }}
+                {% endif %}
+
+            </div>
+
+
+            {% if experience.bullets %}
+
+            <ul>
+
+                {% for bullet in experience.bullets %}
+
+                <li>
+                    {{ bullet }}
+                </li>
+
+                {% endfor %}
+
+            </ul>
+
+            {% endif %}
+
+        </div>
+
+        {% endfor %}
+
+    </section>
+
+    {% endif %}
+
+
+    <!-- ========================= -->
+    <!-- PROJECTS -->
+    <!-- ========================= -->
+
+    {% if resume.projects %}
+
+    <section class="section">
+
+        <div class="section-title">
+            PROJECTS
+        </div>
+
+        {% for project in resume.projects %}
+
+        <div class="entry">
+
+            <div class="entry-header">
+
+                <table>
+                    <tr>
+
+                        <td class="entry-title">
+                            {{ project.name }}
+                        </td>
+
+                        {% if project.start_date or project.end_date %}
+
+                        <td class="date">
+
+                            {% if project.start_date %}
+                                {{ project.start_date }}
+                            {% endif %}
+
+                            {% if project.start_date and project.end_date %}
+                                –
+                            {% endif %}
+
+                            {% if project.end_date %}
+                                {{ project.end_date }}
+                            {% endif %}
+
+                        </td>
+
+                        {% endif %}
+
+                    </tr>
+                </table>
+
+            </div>
+
+
+            {% if project.technologies %}
+
+            <div class="technologies">
+                {{ project.technologies | join(", ") }}
+            </div>
+
+            {% endif %}
+
+
+            {% if project.bullets %}
+
+            <ul>
+
+                {% for bullet in project.bullets %}
+
+                <li>
+                    {{ bullet }}
+                </li>
+
+                {% endfor %}
+
+            </ul>
+
+            {% endif %}
+
+        </div>
+
+        {% endfor %}
+
+    </section>
+
+    {% endif %}
+
+
+    <!-- ========================= -->
+    <!-- SKILLS -->
+    <!-- ========================= -->
+
+    {% if resume.skills %}
+
+    <section class="section">
+
+        <div class="section-title">
+            SKILLS
+        </div>
+
+
+        {% if resume.skills.programming_languages %}
+
+        <div class="skill-line">
+
+            <span class="skill-category">
+                Programming Languages:
+            </span>
+
+            {{ resume.skills.programming_languages | join(", ") }}
+
+        </div>
+
+        {% endif %}
+
+
+        {% if resume.skills.frameworks_and_libraries %}
+
+        <div class="skill-line">
+
+            <span class="skill-category">
+                Frameworks &amp; Libraries:
+            </span>
+
+            {{ resume.skills.frameworks_and_libraries | join(", ") }}
+
+        </div>
+
+        {% endif %}
+
+
+        {% if resume.skills.tools_and_technologies %}
+
+        <div class="skill-line">
+
+            <span class="skill-category">
+                Tools &amp; Technologies:
+            </span>
+
+            {{ resume.skills.tools_and_technologies | join(", ") }}
+
+        </div>
+
+        {% endif %}
+
+
+        {% if resume.skills.databases %}
+
+        <div class="skill-line">
+
+            <span class="skill-category">
+                Databases:
+            </span>
+
+            {{ resume.skills.databases | join(", ") }}
+
+        </div>
+
+        {% endif %}
+
+
+        {% if resume.skills.other %}
+
+        <div class="skill-line">
+
+            <span class="skill-category">
+                Other:
+            </span>
+
+            {{ resume.skills.other | join(", ") }}
+
+        </div>
+
+        {% endif %}
+
+    </section>
+
+    {% endif %}
+
+
+    <!-- ========================= -->
+    <!-- CERTIFICATIONS -->
+    <!-- ========================= -->
+
+    {% if resume.certifications %}
+
+    <section class="section">
+
+        <div class="section-title">
+            CERTIFICATIONS
+        </div>
+
+        <ul>
+
+            {% for certification in resume.certifications %}
+
+            <li>
+
+                <strong>
+                    {{ certification.name }}
+                </strong>
+
+                {% if certification.issuer %}
+                    — {{ certification.issuer }}
+                {% endif %}
+
+                {% if certification.date %}
+                    ({{ certification.date }})
+                {% endif %}
+
+            </li>
+
+            {% endfor %}
+
+        </ul>
+
+    </section>
+
+    {% endif %}
+
+
+    <!-- ========================= -->
+    <!-- ACHIEVEMENTS -->
+    <!-- ========================= -->
+
+    {% if resume.achievements %}
+
+    <section class="section">
+
+        <div class="section-title">
+            ACHIEVEMENTS
+        </div>
+
+        <ul>
+
+            {% for achievement in resume.achievements %}
+
+            <li>
+                {{ achievement }}
+            </li>
+
+            {% endfor %}
+
+        </ul>
+
+    </section>
+
+    {% endif %}
+
+
+    <!-- ========================= -->
+    <!-- POSITIONS OF RESPONSIBILITY -->
+    <!-- ========================= -->
+
+    {% if resume.positions_of_responsibility %}
+
+    <section class="section">
+
+        <div class="section-title">
+            POSITIONS OF RESPONSIBILITY
+        </div>
+
+        <ul>
+
+            {% for position in resume.positions_of_responsibility %}
+
+            <li>
+                {{ position }}
+            </li>
+
+            {% endfor %}
+
+        </ul>
+
+    </section>
+
+    {% endif %}
+
+
+    <!-- ========================= -->
+    <!-- COURSEWORK -->
+    <!-- ========================= -->
+
+    {% if resume.coursework %}
+
+    <section class="section">
+
+        <div class="section-title">
+            COURSEWORK
+        </div>
+
+        <p class="coursework">
+            {{ resume.coursework | join(", ") }}
+        </p>
+
+    </section>
+
+    {% endif %}
+
+
+</body>
+
+</html>
