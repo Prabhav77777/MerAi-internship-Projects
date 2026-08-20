@@ -5,11 +5,26 @@ from groq import Groq
 from pypdf import PdfReader
 import json
 from pdf_generator import generate_resume_pdf
+import base64
 load_dotenv()
+st.markdown("""
+<style>
+
+    /* Use almost the entire browser width */
+    .block-container {
+        max-width: 95%;
+        padding-left: 2rem;
+        padding-right: 2rem;
+        padding-top: 2rem;
+        padding-bottom: 2rem;
+    }
+
+</style>
+""", unsafe_allow_html=True)
 
 st.title("Resume Optimizer")
 
-col1, col2 = st.columns(2)
+col1, col2 = st.columns([0.8, 1.5])
 
 with col1:
 
@@ -232,6 +247,20 @@ Do not wrap the JSON in ```json or any other markdown code block.
 
             # Display result
             with col2:
+                # Preview
+                pdf_base64 = base64.b64encode(pdf_data).decode("utf-8")
+
+                st.markdown(
+                    f"""
+                    <iframe
+                        src="data:application/pdf;base64,{pdf_base64}"
+                        width="100%"
+                        height="900"
+                        style="border: none;">
+                    </iframe>
+                    """,
+                    unsafe_allow_html=True
+                )
                 st.download_button(
     label="Download Optimized Resume",
     data=pdf_data,
