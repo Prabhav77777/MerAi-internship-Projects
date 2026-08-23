@@ -15,6 +15,7 @@ import urllib.request
 import cv2
 import numpy as np
 import mediapipe as mp
+import streamlit as st
 from mediapipe.tasks import python as mp_python
 from mediapipe.tasks.python import vision as mp_vision
 
@@ -37,22 +38,34 @@ HAND_CONNECTIONS = [
 
 
 def _ensure_model_downloaded():
+    """Downloads the MediaPipe hand landmark model if it's not already present."""
     if not os.path.exists(MODEL_PATH):
-        print(f"Downloading hand landmark model to {MODEL_PATH} (one-time, ~7MB)...")
-        urllib.request.urlretrieve(MODEL_URL, MODEL_PATH)
-        print("Download complete.")
+        try:
+            print(f"Downloading hand landmark model to {MODEL_PATH} (one-time, ~7MB)...")
+            urllib.request.urlretrieve(MODEL_URL, MODEL_PATH)
+            print("Download complete.")
+        except Exception as e:
+            raise RuntimeError(
+                f"Could not download hand landmark model: {e}. "
+                f"Please download it manually from {MODEL_URL} "
+                f"and place it at {MODEL_PATH}"
+            )
 
 
-_ensure_model_downloaded()
+@st.cache_resource
+def _get_landmarker():
+    """Creates and caches the MediaPipe HandLandmarker so the expensive
+    model load only happens once, even across Streamlit reruns."""
+    _ensure_model_downloaded()
 
-_base_options = mp_python.BaseOptions(model_asset_path=MODEL_PATH)
-_options = mp_vision.HandLandmarkerOptions(
-    base_options=_base_options,
-    running_mode=mp_vision.RunningMode.IMAGE,
-    num_hands=1,
-    min_hand_detection_confidence=0.5,
-)
-_landmarker = mp_vision.HandLandmarker.create_from_options(_options)
+    base_options = mp_python.BaseOptions(model_asset_path=MODEL_PATH)
+    options = mp_vision.HandLandmarkerOptions(
+        base_options=base_options,
+        running_mode=mp_vision.RunningMode.IMAGE,
+        num_hands=1,
+        min_hand_detection_confidence=0.5,
+    )
+    return mp_vision.HandLandmarker.create_from_options(options)
 
 
 def extract_landmarks_from_bgr(image_bgr):
@@ -67,10 +80,19 @@ def extract_landmarks_from_bgr(image_bgr):
             skeleton drawn on it, useful for showing the user what
             was detected.
     """
+    try:
+        landmarker = _get_landmarker()
+    except Exception:
+        # If landmarker can't load, return no detection rather than crashing
+        return None, image_bgr.copy()
+
     image_rgb = cv2.cvtColor(image_bgr, cv2.COLOR_BGR2RGB)
     mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=image_rgb)
 
-    result = _landmarker.detect(mp_image)
+    try:
+        result = landmarker.detect(mp_image)
+    except Exception:
+        return None, image_bgr.copy()
 
     annotated = image_bgr.copy()
 
