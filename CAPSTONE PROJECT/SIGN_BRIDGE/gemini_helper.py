@@ -13,41 +13,82 @@ Setup:
 import streamlit as st
 import google.generativeai as genai
 
-SYSTEM_PROMPT = """You are a communication assistant helping a deaf or \
-mute user who is fingerspelling using ASL (American Sign Language). \
-You will receive a raw, letter-by-letter string with possible minor \
-recognition errors (e.g. missing letters, or an occasional wrong letter \
-due to hand-detection noise).
+SYSTEM_PROMPT = """\
+You are a communication assistant embedded in SignBridge, an application \
+that helps deaf or mute users communicate through ASL fingerspelling. \
+The user spells words letter-by-letter in front of a webcam, and a \
+machine-learning model recognizes each letter. You will receive the raw, \
+concatenated text output from this recognition process.
 
 Your job:
-1. Reconstruct the most likely intended word(s)/sentence.
-2. Correct obvious recognition typos using context.
+1. Reconstruct the most likely intended word(s) and sentence.
+2. Correct obvious recognition errors (e.g. missing letters, or an \
+   occasional wrong letter due to hand-detection noise).
 3. Add proper punctuation and capitalization.
-4. Preserve the original meaning — never invent new content or add \
-information the user didn't spell.
-5. If something is ambiguous, pick the most common/likely everyday \
-interpretation.
+4. Preserve the user's original meaning — NEVER invent new content, \
+   add information the user didn't spell, or elaborate beyond what \
+   was spelled.
+5. If the input is ambiguous, pick the most common everyday \
+   interpretation rather than guessing at something unusual.
+6. If the input is very short (one or two words), just clean those \
+   words — don't expand them into a full sentence.
 
-Respond with ONLY the cleaned sentence. No explanation, no preamble.
+Respond with ONLY the cleaned sentence. No explanation, no preamble, \
+no commentary.
 """
 
 
-def clean_sentence(raw_text: str) -> str:
+@st.cache_resource
+def _get_model():
+    """Configures Gemini and returns a GenerativeModel instance.
+    Returns None if no API key is available."""
+    try:
+        api_key = st.secrets.get("GEMINI_API_KEY")
+    except Exception:
+        api_key = None
+
+    if not api_key:
+        return None
+
+    try:
+        genai.configure(api_key=api_key)
+        return genai.GenerativeModel(
+            model_name="gemini-2.0-flash",
+            system_instruction=SYSTEM_PROMPT,
+        )
+    except Exception:
+        return None
+
+
+def clean_sentence(raw_text: str, word_count: int = 0) -> str:
     """
     raw_text: the buffered fingerspelled string, e.g. "HELO HW ARE YOU"
+    word_count: number of completed words in the sentence (used as context)
     returns: a cleaned, natural sentence, e.g. "Hello, how are you?"
     """
-    api_key = st.secrets.get("GEMINI_API_KEY")
-    if not api_key:
-        return raw_text  # graceful fallback if key isn't configured yet
+    model = _get_model()
+    if model is None:
+        st.info(
+            "Gemini API key is not configured in `.streamlit/secrets.toml`. "
+            "Displaying raw fingerspelled input directly.",
+            icon=":material/info:",
+        )
+        return raw_text
 
-    genai.configure(api_key=api_key)
-    model = genai.GenerativeModel(
-        model_name="gemini-2.0-flash",
-        system_instruction=SYSTEM_PROMPT,
-    )
+    # Dynamic context helps Gemini understand the input better
+    context_parts = [f'Raw fingerspelled input: "{raw_text}"']
+    if word_count > 0:
+        context_parts.append(
+            f"(The user spelled {word_count} word(s) in this sentence.)"
+        )
 
-    prompt = f"Raw fingerspelled input: \"{raw_text}\""
-    response = model.generate_content(prompt)
+    prompt = "\n".join(context_parts)
 
-    return response.text.strip()
+    try:
+        response = model.generate_content(prompt)
+        return response.text.strip()
+    except Exception as e:
+        # If Gemini fails (quota, network, etc.), return raw text
+        # so the app doesn't crash — user still sees their input
+        st.warning(f"Gemini cleanup unavailable: {e}. Showing raw text.")
+        return raw_text
