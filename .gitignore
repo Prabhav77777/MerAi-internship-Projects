@@ -1,2 +1,7 @@
 CAPSTONE PROJECT/SIGN_BRIDGE/.streamlit/secrets.toml
 CAPSTONE PROJECT/SIGN_BRIDGE/__pycache__/.env
+.streamlit/secrets.toml
+**/.streamlit/secrets.toml
+.env
+**/.env
+__pycache__/
