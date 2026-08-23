@@ -6,14 +6,7 @@ a letter once the same prediction has been held steady for a short
 moment — no photo-click needed per letter.
 
 This uses streamlit-webrtc, which streams video through the browser,
-so it works both locally and once deployed (unlike a plain cv2.imshow
-window, which only works on your own machine).
-
-Performance note: running full hand-landmark detection on every single
-frame at 30fps is expensive and causes visible lag. We only run
-detection every PROCESS_EVERY_N_FRAMES frames and reuse the last
-result in between — this keeps the video smooth while still updating
-the prediction several times per second.
+so it works both locally and once deployed.
 """
 
 import threading
@@ -26,21 +19,9 @@ from streamlit_webrtc import VideoProcessorBase
 from hand_utils import extract_landmarks_from_bgr
 from classify import predict_letter
 
-# Only run the (expensive) detection+classification every Nth frame.
-# At ~24-30fps input, 3 means we still classify ~8-10 times/second —
-# plenty responsive, far less laggy.
 PROCESS_EVERY_N_FRAMES = 3
-
-# How many *processed* frames (not raw frames) the same letter must
-# be held for before it auto-commits. At ~8-10 classifications/sec,
-# 6 is roughly half a second of holding.
 STABILITY_FRAMES = 6
-
-# Minimum confidence to accept a prediction as "detected" at all.
-# Live webcam frames are noisier than the still photos used for
-# training, so this is intentionally more lenient than Click Mode.
 CONFIDENCE_THRESHOLD = 0.45
-
 COOLDOWN_SECONDS = 1.0
 
 
@@ -65,7 +46,7 @@ class LiveSignProcessor(VideoProcessorBase):
             self.frame_count += 1
             run_detection = (self.frame_count % PROCESS_EVERY_N_FRAMES == 0)
 
-        annotated = img  # default: raw frame, overwritten below if we detect
+        annotated = img
 
         if run_detection:
             landmarks, annotated = extract_landmarks_from_bgr(img)
@@ -82,19 +63,19 @@ class LiveSignProcessor(VideoProcessorBase):
                     letter, confidence = predict_letter(landmarks)
                     self.current_confidence = confidence
 
-                    if confidence < CONFIDENCE_THRESHOLD:
+                    if letter is None or confidence < CONFIDENCE_THRESHOLD:
                         letter = None
 
-                    if letter == self.current_letter:
+                    if letter == self.current_letter and letter is not None:
                         self.stable_count += 1
                     else:
                         self.current_letter = letter
-                        self.stable_count = 1
+                        self.stable_count = 1 if letter is not None else 0
 
                     now = time.time()
                     ready_to_commit = (
                         letter is not None
-                        and self.stable_count == STABILITY_FRAMES
+                        and self.stable_count >= STABILITY_FRAMES
                         and (
                             letter != self.last_committed_letter
                             or (now - self.last_committed_time) > COOLDOWN_SECONDS
@@ -106,9 +87,8 @@ class LiveSignProcessor(VideoProcessorBase):
                         self.last_committed_time = now
                         self.last_added_display = letter
                         self.last_added_display_time = now
+                        self.stable_count = 0  # reset for next gesture
         else:
-            # Skip detection this frame, but still draw the hand-free
-            # raw frame so the video stays smooth and responsive.
             pass
 
         with self.lock:
@@ -118,36 +98,35 @@ class LiveSignProcessor(VideoProcessorBase):
             hand_visible = self.hand_visible
             show_added_flash = (
                 self.last_added_display is not None
-                and (time.time() - self.last_added_display_time) < 1.0
+                and (time.time() - self.last_added_display_time) < 1.2
             )
             flash_letter = self.last_added_display
 
-        # ---- On-screen overlay (always drawn, every frame, cheap) ----
+        # On-screen overlay on video frame
         h, w = annotated.shape[:2]
 
         if not hand_visible:
-            label = "Show your hand..."
-            color = (0, 0, 255)  # red
+            label = "Show your hand to camera..."
+            color = (0, 0, 255)
         elif display_letter:
             label = f"Detected: {display_letter} ({display_conf:.0%})"
-            color = (0, 255, 0)  # green
+            color = (0, 255, 0)
         else:
-            label = "Detecting... (low confidence)"
-            color = (0, 165, 255)  # orange
+            label = "Detecting hand posture..."
+            color = (0, 165, 255)
 
         cv2.putText(annotated, label, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.9, color, 2)
 
-        # Stability progress bar
+        # Progress bar overlay
         bar_w = 200
         cv2.rectangle(annotated, (10, 45), (10 + bar_w, 65), (80, 80, 80), 1)
-        filled = int(bar_w * (display_count / STABILITY_FRAMES))
+        filled = int(bar_w * (display_count / float(STABILITY_FRAMES)))
         if filled > 0:
             cv2.rectangle(annotated, (10, 45), (10 + filled, 65), color, -1)
 
-        # Big "Added: X" flash for ~1 second right after a commit
         if show_added_flash:
             cv2.putText(
-                annotated, f"Added: {flash_letter}", (10, h - 20),
+                annotated, f"ADDED LETTER: {flash_letter}", (10, h - 25),
                 cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 255, 0), 3,
             )
 
