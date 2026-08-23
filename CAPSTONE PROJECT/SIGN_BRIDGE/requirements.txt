@@ -1,0 +1,11 @@
+streamlit==1.50.0
+opencv-python-headless==4.10.0.84
+mediapipe==0.10.33
+scikit-learn==1.7.2
+pandas==2.3.3
+numpy==2.3.2
+joblib==1.4.2
+google-generativeai==0.8.3
+gTTS==2.5.3
+pyspellchecker
+Pillow==11.3.0
