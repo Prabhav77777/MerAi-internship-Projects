@@ -29,9 +29,16 @@ def main():
     X = df.drop(columns=["label"])
     y = df["label"]
 
-    X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=0.2, random_state=42, stratify=y
-    )
+    min_samples = df['label'].value_counts().min()
+    if min_samples < 2:
+        print("Note: Some letters have < 2 samples. Training without stratification.")
+        X_train, X_test, y_train, y_test = train_test_split(
+            X, y, test_size=0.2, random_state=42
+        )
+    else:
+        X_train, X_test, y_train, y_test = train_test_split(
+            X, y, test_size=0.2, random_state=42, stratify=y
+        )
 
     clf = RandomForestClassifier(n_estimators=200, random_state=42)
     clf.fit(X_train, y_train)
