@@ -19,10 +19,17 @@ Run locally with:  streamlit run app.py
 
 import csv
 import os
+from pathlib import Path
 
 import streamlit as st
 import pandas as pd
 from datetime import datetime
+
+# Streamlit Community Cloud starts apps from the repository root, while this
+# app and its bundled model/assets live in a subdirectory. Resolve all legacy
+# relative paths from this file so local and cloud runs use the same files.
+PROJECT_DIR = Path(__file__).resolve().parent
+os.chdir(PROJECT_DIR)
 
 from hand_utils import extract_landmarks_from_bgr, bytes_to_bgr_image
 from classify import get_supported_letters, predict_letter
