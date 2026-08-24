@@ -28,3 +28,6 @@ Thumbs.db
 # Temporary files
 *.tmp
 *.log
+
+# Candidate models are evaluation artifacts, never active automatically
+model_candidate.pkl

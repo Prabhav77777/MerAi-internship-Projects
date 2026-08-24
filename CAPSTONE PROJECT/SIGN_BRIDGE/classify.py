@@ -10,6 +10,8 @@ import joblib
 import numpy as np
 import streamlit as st
 
+from constants import static_supported_letters
+
 MODEL_PATH = "model.pkl"
 
 
@@ -42,10 +44,21 @@ def predict_letter(landmarks):
     if model is None:
         return None, 0.0
 
-    X = np.array(landmarks).reshape(1, -1)
+    X = np.asarray(landmarks, dtype=float).reshape(1, -1)
+    expected_features = getattr(model, "n_features_in_", X.shape[1])
+    if X.shape[1] != expected_features:
+        return None, 0.0
 
     prediction = model.predict(X)[0]
     probabilities = model.predict_proba(X)[0]
-    confidence = max(probabilities)
+    confidence = float(max(probabilities))
 
-    return prediction, confidence
+    return str(prediction).upper(), confidence
+
+
+def get_supported_letters() -> tuple[str, ...]:
+    """Single source of truth for static UI targets from ``model.classes_``."""
+    model = load_model()
+    if model is None or not hasattr(model, "classes_"):
+        return ()
+    return static_supported_letters(model.classes_)

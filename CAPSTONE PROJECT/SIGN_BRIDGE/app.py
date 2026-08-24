@@ -25,7 +25,7 @@ import pandas as pd
 from datetime import datetime
 
 from hand_utils import extract_landmarks_from_bgr, bytes_to_bgr_image
-from classify import predict_letter
+from classify import get_supported_letters, predict_letter
 from gemini_helper import clean_sentence
 from tts_helper import text_to_speech_bytes
 from word_suggest import suggest_words
@@ -38,7 +38,7 @@ st.set_page_config(
 )
 
 LANDMARKS_CSV = "data/landmarks.csv"
-ASL_LETTERS = list("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+ASL_LETTERS = list(get_supported_letters())
 STABILITY_FRAMES = 6
 
 
@@ -46,7 +46,7 @@ def save_training_sample(landmarks, letter):
     """Appends a confirmed (or corrected) sample to the training CSV,
     so mistakes caught during testing/demo directly improve the next
     training run."""
-    if landmarks is None:
+    if landmarks is None or letter not in ASL_LETTERS:
         return
     os.makedirs("data", exist_ok=True)
     file_exists = os.path.exists(LANDMARKS_CSV)
@@ -72,6 +72,7 @@ defaults = {
     "raw_sentence": "",
     "final_sentence": "",
     "audio_bytes": None,
+    "last_annotated_image": None,
 }
 for key, value in defaults.items():
     if key not in st.session_state:
@@ -81,11 +82,11 @@ for key, value in defaults.items():
 # ---------- Sidebar ASL Reference Board ----------
 with st.sidebar:
     st.subheader(":material/menu_book: ASL Sign Reference")
-    st.caption("Fingerspelling Guide (A – Z)")
-    st.image("https://www.startasl.com/wp-content/uploads/elementor/thumbs/american-sign-language-alphabet-p19mjxw16db0cy5viuhdrpsk6trhuieisxx4p37v28.jpg", caption="ASL Fingerspelling Reference Guide (A to Z)", use_container_width=True)
+    st.caption("Fingerspelling guide (A–Z; J and Z use motion)")
+    st.image("image_sign.jpg", caption="ASL reference chart — StartASL", width="stretch")
     st.info(
-        "**Tip**: SignBridge classifies 24 static ASL letters (A–Y). "
-        "Motion-based letters (J & Z) require movement.",
+        f"Active static model targets: {', '.join(ASL_LETTERS) or 'unavailable'}. "
+        "J and Z require movement and are not active targets.",
         icon=":material/lightbulb:",
     )
 
@@ -98,8 +99,7 @@ st.caption(
 )
 
 with st.expander(":material/pan_tool: ASL Alphabet Sign Reference Board", expanded=False):
-    if os.path.exists("assets/asl_chart.png"):
-        st.image("assets/asl_chart.png", caption="ASL Fingerspelling Reference Guide (A to Z)", use_container_width=True)
+    st.image("image_sign.jpg", caption="ASL reference chart — StartASL", width="stretch")
 
 # ---------- KPI status row ----------
 with st.container(horizontal=True):
@@ -212,6 +212,7 @@ with tab_click:
 
                 st.session_state.processed_img_id = img_id
                 st.session_state.last_landmarks = landmarks
+                st.session_state.last_annotated_image = annotated
                 st.session_state.show_correction = False
 
                 if landmarks is None:
@@ -225,10 +226,8 @@ with tab_click:
                         st.session_state.last_confidence = confidence
 
             # Display landmarks overlay
-            if st.session_state.last_landmarks is not None:
-                bgr_image = bytes_to_bgr_image(image_bytes)
-                _, annotated = extract_landmarks_from_bgr(bgr_image)
-                st.image(annotated, channels="BGR", caption="Detected hand landmarks")
+            if st.session_state.last_landmarks is not None and st.session_state.last_annotated_image is not None:
+                st.image(st.session_state.last_annotated_image, channels="BGR", caption="Detected hand landmarks")
             else:
                 st.warning(
                     "No hand detected — try adjusting your position or lighting.",
@@ -285,11 +284,7 @@ with tab_click:
             if st.session_state.get("show_correction"):
                 st.write("---")
                 st.write("**Correction mode:** Select the actual letter signed:")
-                correct_letter = st.selectbox(
-                    "Actual ASL Letter",
-                    ASL_LETTERS,
-                    key="correction_select",
-                )
+                correct_letter = st.selectbox("Actual static ASL letter", ASL_LETTERS, key="correction_select")
                 if st.button(
                     ":material/save: Save correction & add this letter",
                     type="primary",
@@ -427,11 +422,8 @@ with tab_collect:
             key="studio_camera",
         )
 
-        target_letter = st.selectbox(
-            "Select target letter label:",
-            ASL_LETTERS,
-            key="studio_target_letter",
-        )
+        target_letter = st.selectbox("Select target static letter:", ASL_LETTERS, key="studio_target_letter")
+        st.caption("J and Z are intentionally excluded because this single-frame pipeline cannot validate their motion.")
 
         if collect_img is not None:
             c_bytes = collect_img.getvalue()
@@ -458,19 +450,20 @@ with tab_collect:
         if os.path.exists(LANDMARKS_CSV):
             dataset_df = pd.read_csv(LANDMARKS_CSV)
             total_samples = len(dataset_df)
-            unique_letters = dataset_df["label"].nunique() if not dataset_df.empty else 0
+            active_dataset_df = dataset_df[dataset_df["label"].isin(ASL_LETTERS)]
+            unique_letters = active_dataset_df["label"].nunique() if not active_dataset_df.empty else 0
 
             col_m1, col_m2 = st.columns(2)
             with col_m1:
                 st.metric("Total Dataset Samples", total_samples, border=True)
             with col_m2:
-                st.metric("Unique Letters Covered", f"{unique_letters}/24", border=True)
+                st.metric("Active static letters covered", f"{unique_letters}/{len(ASL_LETTERS)}", border=True)
 
             if not dataset_df.empty:
-                st.caption("Samples per letter in `data/landmarks.csv`:")
-                counts = dataset_df["label"].value_counts().reset_index()
+                st.caption("Samples per active static letter in `data/landmarks.csv`:")
+                counts = active_dataset_df["label"].value_counts().reset_index()
                 counts.columns = ["Letter", "Samples"]
-                st.dataframe(counts, hide_index=True, use_container_width=True)
+                st.dataframe(counts, hide_index=True)
 
                 col_btn1, col_btn2 = st.columns(2)
                 with col_btn1:
@@ -478,9 +471,12 @@ with tab_collect:
                         with st.spinner("Training Random Forest model..."):
                             from train_classifier import main as train_model
                             try:
-                                train_model()
-                                st.cache_resource.clear()
-                                st.success("Model trained successfully! New model is active.", icon="🎉")
+                                train_model(model_out="model_candidate.pkl")
+                                st.success(
+                                    "Candidate model saved as `model_candidate.pkl`. The active model was preserved; "
+                                    "review evaluation results before replacing it.",
+                                    icon="🎉",
+                                )
                             except Exception as ex:
                                 st.error(f"Training failed: {ex}")
 
@@ -548,7 +544,7 @@ if st.session_state.history_log:
 
     col_table, col_chart = st.columns([3, 2])
     with col_table:
-        st.data_editor(df, use_container_width=True, num_rows="dynamic")
+        st.data_editor(df, num_rows="dynamic")
     with col_chart:
         freq_df = df["letter"].value_counts().reset_index()
         freq_df.columns = ["Letter", "Count"]
@@ -564,7 +560,6 @@ if st.session_state.history_log:
                 ),
             },
             hide_index=True,
-            use_container_width=True,
         )
         st.caption("Letter frequency this session")
 else:
