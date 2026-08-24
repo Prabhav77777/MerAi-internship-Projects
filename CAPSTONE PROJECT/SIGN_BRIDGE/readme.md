@@ -1,6 +1,6 @@
 # 🤟 SignBridge — Fingerspelling-to-Speech Communication Assistant
 
-A camera-based accessibility assistant that translates fingerspelled American Sign Language (ASL) gestures into text and spoken audio in real time, with AI-powered sentence cleanup using Google Gemini.
+A modern, camera-based accessibility web application that translates fingerspelled American Sign Language (ASL) gestures into text and spoken audio in real time, enhanced with AI-powered sentence reconstruction using Google Gemini 2.0 Flash.
 
 ---
 
@@ -8,7 +8,7 @@ A camera-based accessibility assistant that translates fingerspelled American Si
 
 Over 70 million deaf or hard-of-hearing individuals worldwide rely on sign language for daily communication. However, the vast majority of the general public does not understand sign language or fingerspelling. This creates significant communication barriers in everyday scenarios such as healthcare visits, customer service interactions, and social exchanges.
 
-While full natural sign language involves continuous spatial motion, facial expressions, and complex grammar, **fingerspelling (spelling words letter-by-letter using static handshapes)** is a fundamental component of ASL used for names, technical terms, and everyday communication. 
+While full natural sign language involves continuous spatial motion, facial expressions, and complex grammar, **fingerspelling (spelling words letter-by-letter using handshapes)** is a fundamental component of ASL used for names, technical terms, and everyday communication. 
 
 ---
 
@@ -16,10 +16,13 @@ While full natural sign language involves continuous spatial motion, facial expr
 
 **SignBridge** bridges this accessibility gap by providing an easy-to-use, browser-accessible fingerspelling communication assistant:
 
-1. **Captures** static hand gestures via a webcam (using single-letter photo capture or continuous live streaming).
-2. **Detects & Normalizes** hand landmarks using MediaPipe Hand Landmarker (21 keypoints, 63 3D coordinate features).
-3. **Classifies** the handshape into an ASL letter using a trained Random Forest classifier (24 classes: A–Y, excluding motion-based letters J and Z).
-4. **Builds** words and sentences dynamically with real-time offline dictionary suggestions.
+1. **Captures** hand gestures via webcam using three versatile modes:
+   - **📸 Click Mode**: Single-photo capture per letter for high reliability.
+   - **🎥 Live Mode**: Continuous real-time video stream with frame-stability auto-commit.
+   - **📸 Data Collection Studio**: In-browser dataset builder with live skeleton overlay preview.
+2. **Detects & Normalizes** hand landmarks using MediaPipe Hand Landmarker (21 keypoints, 63 3D coordinate features with origin and scale normalization).
+3. **Classifies** handshapes into ASL letters using a trained Random Forest classifier (all 26 letters: A–Z).
+4. **Builds** words and sentences dynamically with real-time offline dictionary suggestions (`pyspellchecker`).
 5. **Contextualizes & Cleans** raw fingerspelled text using **Google Gemini 2.0 Flash** to fix typos, add punctuation, and format natural sentences without hallucinating content.
 6. **Converts** the finalized sentence into spoken English audio using Google Text-to-Speech (`gTTS`).
 7. **Collects Human Feedback** by allowing users to correct misclassifications on the spot, appending corrected landmark samples to `data/landmarks.csv` for continuous model improvement.
@@ -28,13 +31,15 @@ While full natural sign language involves continuous spatial motion, facial expr
 
 ## 3. Key Features
 
-- **📸 Click Mode (Primary / Reliable)**: Single-frame capture per letter. High reliability, ideal for noisy environments, low bandwidth, or evaluation demos.
-- **🎥 Live Mode (Continuous)**: Real-time background webcam stream with stability detection (holds letter for steady frames before auto-committing).
+- **📸 Click Mode (Primary / Reliable)**: Single-frame photo capture per letter. High reliability, ideal for noisy environments, low bandwidth, or evaluation demos.
+- **🎥 Live Mode (Continuous)**: Real-time background webcam stream with stability detection (holds letter steady for 6 frames before auto-committing).
+- **📸 Data Collection Studio**: Built-in web studio allowing developers/users to see themselves live, preview hand skeletons, save landmark samples per letter, reset datasets, and retrain models with 1 click.
 - **💡 Real-time Word Suggestions**: Instant offline word completion powered by dictionary prefix matching (`pyspellchecker`).
-- **🤖 Gemini AI Sentence Reconstruction**: Transforms raw character sequences (e.g., `HELO HW ARE YOU`) into grammatically clean output (`Hello, how are you?`).
-- **🎤 Integrated Text-to-Speech**: Generates MP3 audio directly in memory without temp files on the server.
+- **🤖 Gemini AI Sentence Reconstruction**: Transforms raw character sequences (e.g., `MY NME IS PRABHV`) into grammatically clean output (`My name is Prabhav.`).
+- **🎤 Integrated Text-to-Speech**: Generates MP3 audio directly in memory without temporary server files.
 - **🔄 Human-in-the-Loop Feedback**: Mispredicted letters can be corrected on the spot, saving landmark vectors back into `landmarks.csv` for future retraining.
-- **📊 Session Analytics & Data Editor**: Displays historical predictions and live letter frequency bar charts using Pandas.
+- **📊 Session Analytics & Data Table**: Displays letter frequency statistics using native Streamlit DataFrames with progress column visualizations.
+- **📽️ Automated Video Dataset Extractors**: Includes dedicated scripts to extract landmark datasets directly from ASL tutorial videos (`collect_from_video_file.py`, `collect_full_alphabet_video.py`).
 
 ---
 
@@ -43,7 +48,7 @@ While full natural sign language involves continuous spatial motion, facial expr
 ```
 ┌─────────────────┐       ┌──────────────────────┐       ┌─────────────────────┐
 │  Webcam Input   │ ────> │ MediaPipe Landmarker │ ────> │  RandomForest ML    │
-│  (Click/Live)   │       │ (21 points -> 63 3D) │       │ (24 ASL Classes)    │
+│ (Click/Live/Studio)     │ (21 points -> 63 3D) │       │ (26 ASL Classes)    │
 └─────────────────┘       └──────────────────────┘       └──────────┬──────────┘
                                                                     │ predicted letter
                                                                     ▼
@@ -64,7 +69,9 @@ While full natural sign language involves continuous spatial motion, facial expr
 | `gemini_helper.py` | Gemini API client with strict system prompt to reconstruct sentences without hallucinating details. |
 | `tts_helper.py` | Converts text string to in-memory MP3 audio bytes using `gTTS`. |
 | `word_suggest.py` | Fast offline dictionary lookup for prefix autocompletion. |
-| `collect_data.py` | CLI webcam tool to collect raw landmark CSV samples per letter. |
+| `collect_data.py` | CLI webcam tool with dual OpenCV window / terminal fallback modes for collecting landmark samples. |
+| `collect_from_video_file.py` | Automated tool to extract landmark features frame-by-frame from local video files. |
+| `collect_full_alphabet_video.py` | Sequential extractor for full-alphabet ASL video tutorials (timed or interactive step modes). |
 | `train_classifier.py` | Trains `RandomForestClassifier` on `data/landmarks.csv` and serializes `model.pkl`. |
 
 ---
@@ -72,7 +79,7 @@ While full natural sign language involves continuous spatial motion, facial expr
 ## 5. Technology Stack
 
 - **Frontend & App Framework**: Python 3.10+, Streamlit 1.62.0
-- **Computer Vision**: OpenCV (`opencv-python-headless`), MediaPipe Tasks API (`mediapipe 0.10.x`)
+- **Computer Vision**: OpenCV (`opencv-python`), MediaPipe Tasks API (`mediapipe 0.10.x`)
 - **Machine Learning**: `scikit-learn` (Random Forest Classifier), `joblib`, `numpy`
 - **Generative AI**: `google-generativeai` (Gemini 2.0 Flash)
 - **Audio Output**: `gTTS` (Google Text-to-Speech)
@@ -145,9 +152,9 @@ App will open automatically at `http://localhost:8501`.
 ## 8. Dataset & Model Details
 
 - **Dataset**: `data/landmarks.csv` contains 63 numerical features per sample plus a target `label`.
-- **Classes**: 24 static ASL letters (`A, B, C, D, E, F, G, H, I, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y`).
+- **Classes**: All 26 ASL letters (`A` through `Z`).
 - **Model**: `RandomForestClassifier` (`n_estimators=200`, `random_state=42`).
-- **Evaluation Accuracy**: ~97% test accuracy on balanced landmark dataset.
+- **Evaluation Accuracy**: ~97–99% accuracy on balanced landmark datasets.
 
 ---
 
@@ -173,9 +180,9 @@ Gemini's specific role is **post-processing sentence contextualization**:
 
 ## 11. Limitations & Technical Honesty
 
-- **Static Fingerspelling Only**: SignBridge recognizes static single-letter handshapes (A–Y). It does **not** recognize dynamic full-body ASL signs or motion-based letters (J and Z).
+- **Static Fingerspelling Scope**: SignBridge recognizes fingerspelled handshapes (A–Z). Full natural ASL grammar involves whole-body facial expressions and continuous spatial motion.
 - **Lighting & Camera Dependency**: Hand landmark quality depends on adequate lighting and clear contrast between hand and background.
-- **Scope**: Designed as an assistive communication prototype and educational capstone project, not a medical or certified translation device.
+- **Scope**: Designed as an assistive communication prototype and educational capstone project.
 
 ---
 
