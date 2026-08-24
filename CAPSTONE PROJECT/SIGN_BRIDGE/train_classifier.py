@@ -18,12 +18,17 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report
 import joblib
 
+from constants import DYNAMIC_ASL_LETTERS
+
 DATA_PATH = "data/landmarks.csv"
 MODEL_OUT = "model.pkl"
 
 
-def main():
+def main(model_out=MODEL_OUT):
     df = pd.read_csv(DATA_PATH)
+    df = df[~df["label"].astype(str).str.upper().isin(DYNAMIC_ASL_LETTERS)].copy()
+    if df.empty or df["label"].nunique() < 2:
+        raise ValueError("At least two static-letter classes are required to train a candidate model.")
     print(f"Loaded {len(df)} samples across {df['label'].nunique()} letters")
 
     X = df.drop(columns=["label"])
@@ -47,8 +52,8 @@ def main():
     preds = clf.predict(X_test)
     print(classification_report(y_test, preds))
 
-    joblib.dump(clf, MODEL_OUT)
-    print(f"\nModel saved to {MODEL_OUT}")
+    joblib.dump(clf, model_out)
+    print(f"\nModel saved to {model_out}")
 
 
 if __name__ == "__main__":
