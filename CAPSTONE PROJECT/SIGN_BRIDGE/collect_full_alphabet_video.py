@@ -19,7 +19,7 @@ import cv2
 from hand_utils import extract_landmarks_from_bgr
 
 OUTPUT_CSV = "data/landmarks.csv"
-LETTERS = [c for c in "ABCDEFGHIKLMNOPQRSTUVWXY"]  # 24 static ASL letters (skip J & Z)
+LETTERS = [c for c in "ABCDEFGHIJKLMNOPQRSTUVWXYZ"]  # All 26 ASL letters (A to Z)
 
 def find_default_video():
     mp4_files = glob.glob("*.mp4") + glob.glob("*.webm") + glob.glob("*.avi") + glob.glob("*.mov")
