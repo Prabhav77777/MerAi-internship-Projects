@@ -12,11 +12,7 @@ It analyzes where your time is going, compares it against your personal goal, an
 ## 🚀 Live Demo
 
 **Try Life-OS:**  
-[Open the Live Dashboard](YOUR_STREAMLIT_DEPLOYMENT_URL)
-
-> Replace `YOUR_STREAMLIT_DEPLOYMENT_URL` with your actual Streamlit deployment URL before submission.
-
----
+[Open the Live Dashboard](https://merai-internship-projects-3m8hulgnwsewue7ihhykqd.streamlit.app/)
 
 ## 🎯 Problem
 
@@ -93,3 +89,10 @@ Example:
 Most Used App
 YouTube
 127 min
+## 📌 Submission Links
+
+**Live Application:**  
+https://merai-internship-projects-3m8hulgnwsewue7ihhykqd.streamlit.app/
+
+**GitHub Repository:**  
+https://github.com/Prabhav77777/MerAi-internship-Projects
