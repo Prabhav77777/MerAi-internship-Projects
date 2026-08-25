@@ -56,6 +56,13 @@ IMAGE_SIGN_PATH = str(PROJECT_DIR / "image_sign.jpg")
 ASL_LETTERS = list(get_supported_letters())
 STABILITY_FRAMES = 6
 
+# ---------- Feature Flags & Backend Toggles ----------
+# Controls visibility of Data Collection Studio tab in the frontend display.
+# Set to True here in backend code (or pass ?studio=true in URL) to make it appear.
+ENABLE_DATA_COLLECTION_STUDIO = False
+if st.query_params.get("studio") == "true":
+    ENABLE_DATA_COLLECTION_STUDIO = True
+
 
 def save_training_sample(landmarks, letter):
     """Appends a confirmed (or corrected) sample to the training CSV,
@@ -200,11 +207,17 @@ def render_word_and_sentence_builder(key_prefix):
 
 
 # ---------- Mode tabs ----------
-tab_click, tab_live, tab_collect = st.tabs([
-    ":material/photo_camera: Click mode (reliable)",
-    ":material/videocam: Live mode (continuous)",
-    ":material/add_a_photo: Data Collection Studio (See Yourself Live)",
-])
+if ENABLE_DATA_COLLECTION_STUDIO:
+    tab_click, tab_live, tab_collect = st.tabs([
+        ":material/photo_camera: Click mode (reliable)",
+        ":material/videocam: Live mode (continuous)",
+        ":material/add_a_photo: Data Collection Studio (See Yourself Live)",
+    ])
+else:
+    tab_click, tab_live = st.tabs([
+        ":material/photo_camera: Click mode (reliable)",
+        ":material/videocam: Live mode (continuous)",
+    ])
 
 with tab_click:
     col_camera, col_status = st.columns([1, 1])
@@ -432,87 +445,89 @@ with tab_live:
         render_word_and_sentence_builder(key_prefix="live")
 
 
-with tab_collect:
-    col_collector_cam, col_collector_stats = st.columns([1, 1])
+if ENABLE_DATA_COLLECTION_STUDIO:
+    with tab_collect:
+        col_collector_cam, col_collector_stats = st.columns([1, 1])
 
-    with col_collector_cam:
-        st.subheader("1. Position your hand sign in camera")
-        st.caption("See yourself live in your browser camera below:")
+        with col_collector_cam:
+            st.subheader("1. Position your hand sign in camera")
+            st.caption("See yourself live in your browser camera below:")
 
-        collect_img = st.camera_input(
-            "Take a photo to capture landmarks for dataset",
-            key="studio_camera",
-        )
-
-        target_letter = st.selectbox("Select target static letter:", ASL_LETTERS, key="studio_target_letter")
-        st.caption("J and Z are intentionally excluded because this single-frame pipeline cannot validate their motion.")
-
-        if collect_img is not None:
-            c_bytes = collect_img.getvalue()
-            c_bgr = bytes_to_bgr_image(c_bytes)
-            c_landmarks, c_annotated = extract_landmarks_from_bgr(c_bgr)
-
-            st.image(c_annotated, channels="BGR", caption="Landmarks Skeleton Overlay Preview")
-
-            if c_landmarks is None:
-                st.warning("No hand detected — adjust position or lighting.", icon=":material/warning:")
-            else:
-                if st.button(
-                    f":material/save: Save Sample for Letter '{target_letter}'",
-                    type="primary",
-                    key="studio_save_btn",
-                ):
-                    save_training_sample(c_landmarks, target_letter)
-                    st.toast(f"Saved sample for letter '{target_letter}' to dataset!", icon="✅")
-                    st.rerun()
-
-    with col_collector_stats:
-        st.subheader("2. Dataset Summary & Retrain")
-
-        if os.path.exists(LANDMARKS_CSV):
-            dataset_df = pd.read_csv(LANDMARKS_CSV)
-            total_samples = len(dataset_df)
-            active_dataset_df = dataset_df[dataset_df["label"].isin(ASL_LETTERS)]
-            unique_letters = active_dataset_df["label"].nunique() if not active_dataset_df.empty else 0
-
-            col_m1, col_m2 = st.columns(2)
-            with col_m1:
-                st.metric("Total Dataset Samples", total_samples, border=True)
-            with col_m2:
-                st.metric("Active static letters covered", f"{unique_letters}/{len(ASL_LETTERS)}", border=True)
-
-            if not dataset_df.empty:
-                st.caption("Samples per active static letter in `data/landmarks.csv`:")
-                counts = active_dataset_df["label"].value_counts().reset_index()
-                counts.columns = ["Letter", "Samples"]
-                st.dataframe(counts, hide_index=True)
-
-                col_btn1, col_btn2 = st.columns(2)
-                with col_btn1:
-                    if st.button(":material/model_training: Train Model Now", type="primary", key="retrain_btn"):
-                        with st.spinner("Training Random Forest model..."):
-                            from train_classifier import main as train_model
-                            try:
-                                train_model(model_out="model_candidate.pkl")
-                                st.success(
-                                    "Candidate model saved as `model_candidate.pkl`. The active model was preserved; "
-                                    "review evaluation results before replacing it.",
-                                    icon="🎉",
-                                )
-                            except Exception as ex:
-                                st.error(f"Training failed: {ex}")
-
-                with col_btn2:
-                    if st.button(":material/delete_forever: Clear All Dataset Data", key="clear_dataset_btn"):
-                        if os.path.exists(LANDMARKS_CSV):
-                            os.remove(LANDMARKS_CSV)
-                        st.toast("Cleared all dataset samples!", icon="🗑️")
-                        st.rerun()
-        else:
-            st.info(
-                "No samples collected yet. Take a photo on the left to start building your dataset!",
-                icon=":material/info:",
+            collect_img = st.camera_input(
+                "Take a photo to capture landmarks for dataset",
+                key="studio_camera",
             )
+
+            target_letter = st.selectbox("Select target static letter:", ASL_LETTERS, key="studio_target_letter")
+            st.caption("J and Z are intentionally excluded because this single-frame pipeline cannot validate their motion.")
+
+            if collect_img is not None:
+                c_bytes = collect_img.getvalue()
+                c_bgr = bytes_to_bgr_image(c_bytes)
+                c_landmarks, c_annotated = extract_landmarks_from_bgr(c_bgr)
+
+                st.image(c_annotated, channels="BGR", caption="Landmarks Skeleton Overlay Preview")
+
+                if c_landmarks is None:
+                    st.warning("No hand detected — adjust position or lighting.", icon=":material/warning:")
+                else:
+                    if st.button(
+                        f":material/save: Save Sample for Letter '{target_letter}'",
+                        type="primary",
+                        key="studio_save_btn",
+                    ):
+                        save_training_sample(c_landmarks, target_letter)
+                        st.toast(f"Saved sample for letter '{target_letter}' to dataset!", icon="✅")
+                        st.rerun()
+
+        with col_collector_stats:
+            st.subheader("2. Dataset Summary & Retrain")
+
+            if os.path.exists(LANDMARKS_CSV):
+                dataset_df = pd.read_csv(LANDMARKS_CSV)
+                total_samples = len(dataset_df)
+                active_dataset_df = dataset_df[dataset_df["label"].isin(ASL_LETTERS)]
+                unique_letters = active_dataset_df["label"].nunique() if not active_dataset_df.empty else 0
+
+                col_m1, col_m2 = st.columns(2)
+                with col_m1:
+                    st.metric("Total Dataset Samples", total_samples, border=True)
+                with col_m2:
+                    st.metric("Active static letters covered", f"{unique_letters}/{len(ASL_LETTERS)}", border=True)
+
+                if not dataset_df.empty:
+                    st.caption("Samples per active static letter in `data/landmarks.csv`:")
+                    counts = active_dataset_df["label"].value_counts().reset_index()
+                    counts.columns = ["Letter", "Samples"]
+                    st.dataframe(counts, hide_index=True)
+
+                    col_btn1, col_btn2 = st.columns(2)
+                    with col_btn1:
+                        if st.button(":material/model_training: Train Model Now", type="primary", key="retrain_btn"):
+                            with st.spinner("Training Random Forest model on latest dataset..."):
+                                from train_classifier import main as train_model
+                                from classify import load_model
+                                try:
+                                    train_model(model_out="model.pkl")
+                                    train_model(model_out="model_candidate.pkl")
+                                    load_model.clear()
+                                    st.toast("Model retrained and live classifier updated!", icon="🎉")
+                                    st.success("Model retrained successfully! Active model updated to `model.pkl`.", icon="✅")
+                                    st.rerun()
+                                except Exception as ex:
+                                    st.error(f"Training failed: {ex}")
+
+                    with col_btn2:
+                        if st.button(":material/delete_forever: Clear All Dataset Data", key="clear_dataset_btn"):
+                            if os.path.exists(LANDMARKS_CSV):
+                                os.remove(LANDMARKS_CSV)
+                            st.toast("Cleared all dataset samples!", icon="🗑️")
+                            st.rerun()
+            else:
+                st.info(
+                    "No samples collected yet. Take a photo on the left to start building your dataset!",
+                    icon=":material/info:",
+                )
 
 
 # ---------- Finalize: Gemini cleanup + speech ----------
