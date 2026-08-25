@@ -9,7 +9,8 @@ A collection of AI-powered applications built during my MerAI internship — fea
 
 ## 🏆 Final Capstone Project: SignBridge
 
-📂 [`CAPSTONE PROJECT/SIGN_BRIDGE/`](CAPSTONE%20PROJECT/SIGN_BRIDGE/)
+📂 [`CAPSTONE PROJECT/SIGN_BRIDGE/`](CAPSTONE%20PROJECT/SIGN_BRIDGE/)  
+🚀 **Live Demo:** [https://merai-internship-projects-6bv6pqfn6xojfxelonpxyb.streamlit.app/](https://merai-internship-projects-6bv6pqfn6xojfxelonpxyb.streamlit.app/)
 
 **SignBridge — ASL Fingerspelling → Text → AI Cleanup → Speech**
 
@@ -24,7 +25,7 @@ An assistive communication web application that translates American Sign Languag
 - 📊 **Session Analytics & Governance**: Real-time KPI metrics, editable session history log, and letter frequency visualization.
 
 ### Pipeline Architecture
-`Camera → MediaPipe (21 3D Landmarks) → Wrist/Scale Normalization → Random Forest (200 trees) → Buffers → Gemini 2.0 Flash → gTTS Audio`
+`Camera → MediaPipe (21 3D Landmarks) → Wrist/Scale Normalization → Random Forest (200 trees) → Buffers → Gemini 2.5 Flash → gTTS Audio`
 
 ### Run SignBridge
 ```bash

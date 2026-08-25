@@ -21,7 +21,7 @@ import joblib
 from constants import DYNAMIC_ASL_LETTERS
 
 DATA_PATH = "data/landmarks.csv"
-MODEL_OUT = "model.pkl"
+MODEL_OUT = "model_candidate.pkl"
 
 
 def main(model_out=MODEL_OUT):
