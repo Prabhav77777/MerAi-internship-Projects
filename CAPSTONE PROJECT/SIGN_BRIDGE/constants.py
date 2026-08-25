@@ -1,15 +1,15 @@
-"""Shared configuration for SignBridge's static classifier (supporting full A-Z alphabet)."""
+"""Shared, conservative configuration for SignBridge's static classifier."""
 
-# All 26 letters A through Z are supported.
-DYNAMIC_ASL_LETTERS = frozenset()
-ALL_ASL_LETTERS = tuple(c for c in "ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+# J and Z are motion-based ASL fingerspelling letters. A single image/frame
+# cannot validate their motion path, so they are intentionally not active
+# classifier targets even if historic data happens to contain either label.
+DYNAMIC_ASL_LETTERS = frozenset({"J", "Z"})
 
 
 def static_supported_letters(model_classes):
-    """Return sorted targets represented by a loaded classifier."""
+    """Return sorted static targets represented by a loaded classifier."""
     return tuple(
         letter
         for letter in sorted(str(label).upper() for label in model_classes)
         if len(letter) == 1 and letter.isalpha() and letter not in DYNAMIC_ASL_LETTERS
     )
-
