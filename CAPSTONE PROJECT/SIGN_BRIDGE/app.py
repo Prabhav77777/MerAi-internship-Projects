@@ -39,6 +39,7 @@ from hand_utils import (
     extract_landmarks_from_bgr,
     get_hand_landmarker_error,
 )
+from constants import ALL_ASL_LETTERS, static_supported_letters
 from classify import get_supported_letters, predict_letter
 from gemini_helper import clean_sentence
 from tts_helper import text_to_speech_bytes
@@ -53,7 +54,8 @@ st.set_page_config(
 
 LANDMARKS_CSV = str(PROJECT_DIR / "data" / "landmarks.csv")
 IMAGE_SIGN_PATH = str(PROJECT_DIR / "image_sign.jpg")
-ASL_LETTERS = list(get_supported_letters())
+ALL_ASL_LETTERS = list(ALL_ASL_LETTERS)
+ASL_LETTERS = list(get_supported_letters()) or ALL_ASL_LETTERS
 STABILITY_FRAMES = 6
 
 
@@ -61,7 +63,7 @@ def save_training_sample(landmarks, letter):
     """Appends a confirmed (or corrected) sample to the training CSV,
     so mistakes caught during testing/demo directly improve the next
     training run."""
-    if landmarks is None or letter not in ASL_LETTERS:
+    if landmarks is None or letter not in ALL_ASL_LETTERS:
         return
     os.makedirs(PROJECT_DIR / "data", exist_ok=True)
     file_exists = os.path.exists(LANDMARKS_CSV)
@@ -97,11 +99,10 @@ for key, value in defaults.items():
 # ---------- Sidebar ASL Reference Board ----------
 with st.sidebar:
     st.subheader(":material/menu_book: ASL Sign Reference")
-    st.caption("Fingerspelling guide (A–Z; J and Z use motion)")
+    st.caption("Fingerspelling guide (A–Z)")
     st.image(IMAGE_SIGN_PATH, caption="ASL reference chart — StartASL", width="stretch")
     st.info(
-        f"Active static model targets: {', '.join(ASL_LETTERS) or 'unavailable'}. "
-        "J and Z require movement and are not active targets.",
+        f"Active model targets ({len(ASL_LETTERS)} letters): {', '.join(ASL_LETTERS) or 'unavailable'}.",
         icon=":material/lightbulb:",
     )
 
@@ -306,7 +307,7 @@ with tab_click:
             if st.session_state.get("show_correction"):
                 st.write("---")
                 st.write("**Correction mode:** Select the actual letter signed:")
-                correct_letter = st.selectbox("Actual static ASL letter", ASL_LETTERS, key="correction_select")
+                correct_letter = st.selectbox("Actual ASL letter", ALL_ASL_LETTERS, key="correction_select")
                 if st.button(
                     ":material/save: Save correction & add this letter",
                     type="primary",
@@ -444,8 +445,8 @@ with tab_collect:
             key="studio_camera",
         )
 
-        target_letter = st.selectbox("Select target static letter:", ASL_LETTERS, key="studio_target_letter")
-        st.caption("J and Z are intentionally excluded because this single-frame pipeline cannot validate their motion.")
+        target_letter = st.selectbox("Select target letter:", ALL_ASL_LETTERS, key="studio_target_letter")
+        st.caption("Supports all 26 letters from A to Z.")
 
         if collect_img is not None:
             c_bytes = collect_img.getvalue()
