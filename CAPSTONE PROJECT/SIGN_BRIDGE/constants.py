@@ -1,9 +1,9 @@
-"""Shared, conservative configuration for SignBridge's static classifier."""
+"""Shared configuration for SignBridge's static classifier."""
 
-# J and Z are motion-based ASL fingerspelling letters. A single image/frame
-# cannot validate their motion path, so they are intentionally not active
-# classifier targets even if historic data happens to contain either label.
+# Dynamic motion letters filter (empty to allow all 26 letters A-Z in static classifier)
 DYNAMIC_ASL_LETTERS = frozenset()
+
+# Full alphabet tuple (A-Z)
 ALL_ASL_LETTERS = tuple(chr(code) for code in range(ord("A"), ord("Z") + 1))
 
 
@@ -12,6 +12,5 @@ def static_supported_letters(model_classes):
     return tuple(
         letter
         for letter in sorted(str(label).upper() for label in model_classes)
-        if len(letter) == 1 and letter.isalpha()
+        if len(letter) == 1 and letter.isalpha() and letter not in DYNAMIC_ASL_LETTERS
     )
-

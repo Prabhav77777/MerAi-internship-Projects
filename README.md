@@ -1,15 +1,45 @@
 # MerAi Internship Projects
 
-A collection of AI-powered Streamlit apps built during my internship — exploring prompt/persona engineering, image generation, text-to-speech, and conversational AI using Google's Gemini API.
+A collection of AI-powered applications built during my MerAI internship — featuring **SignBridge** (the final capstone project) alongside Assignments 1–5 exploring computer vision, machine learning, prompt engineering, multimodal AI, text-to-speech, and image generation.
 
-**Author:** [Prabhav Agrawal](https://github.com/Prabhav77777)
-**Repo:** [Prabhav77777/MerAi-internship-Projects](https://github.com/Prabhav77777/MerAi-internship-Projects)
+**Author:** [Prabhav Agrawal](https://github.com/Prabhav77777)  
+**Repo:** [Prabhav77777/MerAi-internship-Projects](https://github.com/Prabhav77777/MerAi-internship-Projects)  
+
+---
+
+## 🏆 Final Capstone Project: SignBridge
+
+📂 [`CAPSTONE PROJECT/SIGN_BRIDGE/`](CAPSTONE%20PROJECT/SIGN_BRIDGE/)
+
+**SignBridge — ASL Fingerspelling → Text → AI Cleanup → Speech**
+
+An assistive communication web application that translates American Sign Language (ASL) fingerspelling into spoken English sentences in real-time.
+
+### Key Features
+- 📸 **Click Mode**: Photo-by-photo letter recognition with confidence feedback, correction mode, and offline word autocomplete suggestions.
+- 📹 **Live Mode**: WebRTC video stream processor with stability detection (6-frame hold threshold) and automatic letter entry.
+- 🎨 **Data Collection Studio**: Interactive camera studio for landmark collection, dataset inspection, candidate model training, and candidate deployment.
+- 🤖 **Gemini AI Cleanup**: Powered by Google GenAI SDK (`google-genai`), turns raw fingerspelled letter sequences into natural, punctuated sentences.
+- 🔊 **Text-to-Speech (gTTS)**: Converts cleaned sentences into audio bytes for immediate playback.
+- 📊 **Session Analytics & Governance**: Real-time KPI metrics, editable session history log, and letter frequency visualization.
+
+### Pipeline Architecture
+`Camera → MediaPipe (21 3D Landmarks) → Wrist/Scale Normalization → Random Forest (200 trees) → Buffers → Gemini 2.0 Flash → gTTS Audio`
+
+### Run SignBridge
+```bash
+git clone https://github.com/Prabhav77777/MerAi-internship-Projects.git
+cd "MerAi-internship-Projects/CAPSTONE PROJECT/SIGN_BRIDGE"
+pip install -r "../../requirements.txt"
+streamlit run app.py
+```
 
 ---
 
 ## Table of Contents
 
 - [Overview](#overview)
+- [Capstone Project: SignBridge](#-final-capstone-project-signbridge)
 - [Assignment 1: Echo Chamber 9000](#assignment-1-echo-chamber-9000)
 - [Assignment 2: AI Personality Bot](#assignment-2-ai-personality-bot)
 - [Assignment 3: AI Multiverse](#assignment-3-ai-multiverse)
@@ -24,13 +54,14 @@ A collection of AI-powered Streamlit apps built during my internship — explori
 
 ## Overview
 
-| # | Assignment | What it does | Core concept |
-|---|------------|---------------|----------------|
-| 1 | [Echo Chamber 9000](#assignment-1-echo-chamber-9000) | Takes a name & message, "transmits" it back, and estimates a token count | Streamlit fundamentals |
-| 2 | [AI Personality Bot](#assignment-2-ai-personality-bot) | Answers one question in a chosen persona (Samay Raina / Shakespeare / Sherlock Holmes) and language | System-prompt / persona engineering |
+| # | Project / Assignment | What it does | Core concept |
+|---|----------------------|--------------|--------------|
+| ⭐ | **[SignBridge (Capstone)](#-final-capstone-project-signbridge)** | Translates ASL fingerspelling into text & speech with Gemini cleanup | MediaPipe, Random Forest, Google GenAI SDK, gTTS, WebRTC |
+| 1 | [Echo Chamber 9000](#assignment-1-echo-chamber-9000) | Takes a name & message, "transmits" it back, and estimates token count | Streamlit fundamentals |
+| 2 | [AI Personality Bot](#assignment-2-ai-personality-bot) | Answers Q&A in a chosen persona (Samay Raina / Shakespeare / Sherlock) | System-prompt & persona engineering |
 | 3 | [AI Multiverse](#assignment-3-ai-multiverse) | Full chatbot with 10 personas and conversation memory | Chat state management, persona design |
 | 4 | [AI Image Studio](#assignment-4-ai-image-studio) | Generates AI images from text prompts with style/size controls | Image-generation APIs, UI controls |
-| 5 | [AI Memory Quest](#assignment-5-ai-memory-quest) | Choice-driven visual novel/RPG with AI-generated story, images, and narration audio | Structured JSON generation, multi-modal output, game-state management |
+| 5 | [AI Memory Quest](#assignment-5-ai-memory-quest) | Choice-driven visual novel/RPG with AI story, images, and audio | Structured JSON, multimodal output, game state |
 
 ---
 
@@ -123,7 +154,7 @@ streamlit run "Assignment 4/main.py"
 
 📂 [`Assignment 5/main.py`](https://github.com/Prabhav77777/MerAi-internship-Projects/blob/main/Assignment%205/main.py)
 
-The capstone project: an AI-driven, choice-based visual novel / RPG powered by **Gemini 2.5 Flash**, with generated scene art and narrated audio for every chapter.
+An AI-driven, choice-based visual novel / RPG powered by **Gemini 2.5 Flash**, with generated scene art and narrated audio for every chapter.
 
 **Features**
 - Hero setup: name, character class (Fire Mage, Knight, Cyber Warrior, Shadow Assassin), difficulty, story world, and art style
@@ -146,13 +177,13 @@ streamlit run "Assignment 5/main.py"
 ## Tech Stack
 
 - **Python 3**
-- **[Streamlit](https://streamlit.io/)** — UI framework for all five apps
-- **[google-genai](https://pypi.org/project/google-genai/)** — official Google Gen AI SDK, used to call Gemini 2.5 Flash
-- **[python-dotenv](https://pypi.org/project/python-dotenv/)** — loads the Gemini API key from a local `.env` file
-- **[Pillow (PIL)](https://pypi.org/project/pillow/)** — image handling for generated images
-- **[requests](https://pypi.org/project/requests/)** — HTTP calls to the Pollinations.ai image API
-- **[gTTS](https://pypi.org/project/gTTS/)** — text-to-speech narration in Assignment 5
-- **[Pollinations.ai](https://pollinations.ai/)** — free text-to-image generation API used in Assignments 4 & 5
+- **[Streamlit](https://streamlit.io/)** — UI framework for all applications
+- **[MediaPipe](https://mediapipe.dev/)** — 21 3D hand landmark extraction
+- **[scikit-learn](https://scikit-learn.org/)** — Random Forest hand gesture classifier
+- **[google-genai](https://pypi.org/project/google-genai/)** — official Google Gen AI SDK (Gemini 2.0 Flash)
+- **[gTTS](https://pypi.org/project/gTTS/)** — text-to-speech narration
+- **[pyspellchecker](https://pypi.org/project/pyspellchecker/)** — offline word autocomplete
+- **[streamlit-webrtc](https://github.com/whitphx/streamlit-webrtc)** — real-time video stream processing
 
 ---
 
@@ -164,7 +195,7 @@ streamlit run "Assignment 5/main.py"
    cd MerAi-internship-Projects
    ```
 
-2. **Create a virtual environment** (recommended)
+2. **Create a virtual environment**
    ```bash
    python -m venv venv
    source venv/bin/activate      # Windows: venv\Scripts\activate
@@ -172,30 +203,21 @@ streamlit run "Assignment 5/main.py"
 
 3. **Install dependencies**
    ```bash
-   pip install streamlit google-genai python-dotenv pillow requests gTTS
+   pip install -r requirements.txt
    ```
 
 4. **Add your Gemini API key**
-   Create a `.env` file in the project root:
+   Create `.streamlit/secrets.toml` inside `CAPSTONE PROJECT/SIGN_BRIDGE/` (or `.env` in root):
+   ```toml
+   GEMINI_API_KEY = "your_api_key_here"
    ```
-   GEMINI_API_KEY=your_api_key_here
-   ```
-   Get a free key from [Google AI Studio](https://aistudio.google.com/app/apikey). (Not needed for Assignment 1 or Assignment 4.)
+   Get a free key from [Google AI Studio](https://aistudio.google.com/app/apikey).
 
-5. **Run any assignment**
+5. **Run SignBridge Capstone**
    ```bash
-   streamlit run "Assignment 2/main.py"
+   cd "CAPSTONE PROJECT/SIGN_BRIDGE"
+   streamlit run app.py
    ```
-
----
-
-## Environment Variables
-
-| Variable | Required for | Description |
-|----------|---------------|--------------|
-| `GEMINI_API_KEY` | Assignment 2, 3, 5 | Your Google Gemini API key, used to authenticate `google-genai` client calls |
-
-`.env` is git-ignored, so your key is never committed.
 
 ---
 
@@ -203,21 +225,32 @@ streamlit run "Assignment 5/main.py"
 
 ```
 MerAi-internship-Projects/
+├── CAPSTONE PROJECT/
+│   └── SIGN_BRIDGE/               # 🤟 SignBridge Capstone Project
+│       ├── app.py                 # Main Streamlit Application
+│       ├── hand_utils.py          # MediaPipe landmark extraction & normalization
+│       ├── classify.py            # Random Forest classifier inference
+│       ├── constants.py           # Alphabet & motion sign configuration
+│       ├── gemini_helper.py       # Google GenAI SDK sentence cleanup
+│       ├── tts_helper.py          # gTTS text-to-speech audio synthesis
+│       ├── word_suggest.py        # Offline word autocomplete
+│       ├── live_processor.py      # WebRTC live video processor
+│       ├── train_classifier.py    # Candidate model training script
+│       ├── model.pkl              # Active production classifier
+│       ├── image_sign.jpg         # ASL reference chart
+│       └── docs/                  # Architecture & ML governance docs
 ├── Assignment 1/
 │   └── Assignment1.py             # Echo Chamber 9000
 ├── Assignment 2/
 │   └── main.py                    # AI Personality Bot
 ├── Assignment 3/
-│   ├── main.py                    # AI Multiverse
-│   ├── demo_video_link.text       # Link to demo video
-│   └── demo video .mp4            # Demo recording
+│   └── main.py                    # AI Multiverse
 ├── Assignment 4/
-│   ├── main.py                    # AI Image Studio
-│   └── demo video link.txt        # Link to demo video
+│   └── main.py                    # AI Image Studio
 ├── Assignment 5/
-│   ├── main.py                    # AI Memory Quest
-│   └── demo video link.txt        # Link to demo video
-├── .gitignore
+│   └── main.py                    # AI Memory Quest
+├── requirements.txt               # Unified project dependencies
+├── packages.txt                   # Streamlit Cloud system dependencies
 └── README.md
 ```
 

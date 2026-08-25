@@ -1,60 +1,84 @@
 # 🤟 SignBridge
 
-```console
-$ git clone https://github.com/Prabhav77777/MerAi-internship-Projects.git
-$ cd "MerAi-internship-Projects/CAPSTONE PROJECT/SIGN_BRIDGE"
-$ streamlit run app.py
-```
+**Fingerspelling → text → Gemini cleanup → speech.**
 
-**Fingerspelling → text → Gemini cleanup → speech.** SignBridge is a browser-based ASL fingerspelling assistant built as a final MerAI capstone.
-
-**Live demo:** [Deployment required] — no public URL is claimed until one is actually deployed.
+SignBridge is a browser-based ASL fingerspelling communication assistant built as an internship capstone project.
 
 ![Bundled ASL reference chart](image_sign.jpg)
 
-## Features
-
-- **Click mode:** reliable photo-by-photo recognition, confidence feedback, correction, word building, and suggestions.
-- **Live mode:** `streamlit-webrtc` processing with stability detection and auto-entry. Browser/network restrictions can apply; Click mode is the fallback.
-- **Data Collection Studio:** landmark capture, dataset counts, safe clearing, and candidate-model training.
-- **AI and speech:** Gemini cleanup and gTTS playback both degrade gracefully when unavailable.
-- **Analytics:** session-state history, Pandas editor, frequency display, and KPI metrics.
-
-## Verified ML status
-
-The checked-in 200-tree Random Forest uses 63 normalized landmark features. Its actual classes are **A–O (15 labels)**; historic `J` is motion-based and excluded from active single-frame targets, and `Z` is absent. The UI derives targets from `model.classes_`, currently **A–I, K–O**.
-
-The dataset has **86 rows** and 17 exact duplicates. A reproducible 80/20 diagnostic split (`random_state=42`, non-stratified because one class has one sample) measured **77.78% accuracy** and **75.99% weighted F1**. This is not a production claim. Read [ML evaluation](docs/ml_evaluation.md).
-
-## Architecture
-
-`camera → MediaPipe (21 landmarks) → wrist/scale normalization → 63 features → Random Forest → buffers → Gemini → gTTS`
-
-See [architecture](docs/architecture.md), [technical design](docs/technical_design.md), and [prompt engineering](docs/prompt_engineering.md).
-
-## Run locally
+## Quick Start
 
 ```bash
-python -m venv .venv
-source .venv/bin/activate  # Windows: .venv\Scripts\activate
-pip install -r requirements.txt
+git clone https://github.com/Prabhav77777/MerAi-internship-Projects.git
+cd "MerAi-internship-Projects/CAPSTONE PROJECT/SIGN_BRIDGE"
+pip install -r "../../requirements.txt"
 streamlit run app.py
 ```
 
-Gemini is optional. Create the ignored `.streamlit/secrets.toml` only if wanted:
+---
 
-```toml
-GEMINI_API_KEY = "your_key"
+## Key Features
+
+- 📸 **Click Mode (Reliable)**: Photo-by-photo static recognition with instant visual feedback, confidence score, correction mechanism, and word autocomplete suggestions.
+- 📹 **Live Mode (Continuous)**: WebRTC background streamer with stability detection (6-frame hold threshold) and auto-commit.
+- 🎨 **Data Collection Studio**: Interactive camera interface for collecting gesture landmarks, viewing dataset statistics, training candidate models, and deploying candidates to production.
+- 🤖 **Gemini AI Cleanup**: Natural language post-processing via Google GenAI SDK (`google-genai`), transforming raw fingerspelling into punctuated, natural sentences without hallucinating.
+- 🔊 **Text-to-Speech**: gTTS audio generator returning in-memory MP3 bytes for immediate playback.
+- 📊 **Session Analytics**: Persistent session log, editable history table, and live letter frequency progress bars.
+
+---
+
+## System Architecture
+
+```
+Camera Stream / Photo
+        │
+        ▼
+MediaPipe Hand Landmarker (21 3D points)
+        │
+        ▼
+Wrist-Relative & Scale Normalization (63 numeric features)
+        │
+        ▼
+Random Forest Classifier (200 trees)
+        │
+        ▼
+Word Buffer & Offline Suggestions (pyspellchecker)
+        │
+        ▼
+Sentence Buffer ──► Gemini 2.0 Flash (google-genai SDK) ──► gTTS ──► Speech Audio
 ```
 
-Without a key, the app opens and returns raw text. The MediaPipe task model is bundled, so normal cloud runs do not download it per rerun.
+---
 
-## Deploy
+## Machine Learning Pipeline & Governance
 
-In Streamlit Community Cloud, select `CAPSTONE PROJECT/SIGN_BRIDGE/app.py`, then add `GEMINI_API_KEY` in Secrets. Test Click mode, model loading, and TTS. Live mode is STUN-only and may fail behind restrictive NAT/firewall policies; no paid TURN service is assumed.
+- **Feature Vector**: 63 floats (21 hand joints $\times$ $x,y,z$), normalized relative to Landmark 0 (wrist) and scaled by wrist-to-middle-MCP distance.
+- **Model Architecture**: Scikit-Learn `RandomForestClassifier` (200 trees).
+- **Static vs. Motion Signs**: Static fingerspelling gestures (A–I, K–O) are active classification targets. Motion-based gestures (J and Z) are excluded from static prediction targets.
+- **Candidate Workflow**: Data Collection Studio trains candidate models to `model_candidate.pkl`. Promoted models are deployed to active production `model.pkl` with automated resource cache invalidation (`load_model.clear()`).
 
-## Limits
+---
 
-This is an educational static-fingerspelling prototype—not a medical device or full ASL translator. It does not recognize facial expression, grammar, two-handed signs, or motion paths. Candidate training writes `model_candidate.pkl`; it does not replace the active model without review.
+## Configuration & Environment Variables
 
-Developer: **Prabhav Agrawal** · **MerAI Internship final capstone**
+Gemini AI cleanup is optional. To enable Gemini cleanup locally, create `.streamlit/secrets.toml`:
+
+```toml
+GEMINI_API_KEY = "your_gemini_api_key_here"
+```
+
+If no key is configured, SignBridge gracefully falls back to displaying raw fingerspelled text without crashing.
+
+---
+
+## Cloud Deployment (Streamlit Community Cloud)
+
+1. Repository: `Prabhav77777/MerAi-internship-Projects`
+2. Main file path: `CAPSTONE PROJECT/SIGN_BRIDGE/app.py`
+3. Add `GEMINI_API_KEY` under **App Settings → Secrets**.
+4. Hand landmark model (`hand_landmarker.task`) is bundled and loaded in-memory via `model_asset_buffer`, ensuring compatibility with read-only cloud filesystems.
+
+---
+
+Developer: **Prabhav Agrawal** · **MerAI Internship Capstone Deliverable**

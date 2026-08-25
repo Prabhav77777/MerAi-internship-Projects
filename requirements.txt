@@ -5,7 +5,7 @@ scikit-learn==1.7.2
 pandas==2.3.3
 numpy==2.3.2
 joblib==1.4.2
-google-generativeai==0.8.3
+google-genai>=1.0.0
 gTTS==2.5.3
 pyspellchecker
 streamlit-webrtc==0.77.0

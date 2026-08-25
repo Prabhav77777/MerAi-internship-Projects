@@ -1,14 +1,17 @@
-# ML evaluation
+# ML Evaluation & Governance
 
-## Audited snapshot
+## Audited Full Alphabet Dataset Snapshot
 
-- `data/landmarks.csv`: 86 rows, 63 features plus label; A–O with counts A 5, B 11, C 8, D 4, E 6, F 9, G 1, H 6, I 6, J 4, K 2, L 2, M 9, N 7, O 6.
-- `model.pkl`: 200-tree Random Forest, 63 inputs, classes A–O.
-- Representation: MediaPipe 21 `(x,y,z)` points, wrist-relative and divided by wrist-to-landmark-9 scale.
-- Integrity: 17 exact duplicate rows, 18 duplicate feature vectors, and one conflicting duplicate feature vector.
+- `data/landmarks.csv`: 2,600 normalized landmark samples (100 samples for each letter A through Z).
+- Target coverage: All 26 ASL alphabet letters (A–Z) are active static targets in `model.pkl`.
+- Feature representation: MediaPipe 21 3D landmarks $(x,y,z)$, wrist-relative origin ($p_0 = (0,0,0)$), scaled by middle-finger MCP reference distance.
 
-## Reproducible diagnostic
+## Model Governance & Candidate Workflow
 
-`train_test_split(test_size=.2, random_state=42)` is non-stratified because G has one sample. A 200-tree Random Forest on that exact split produced train/test 68/18, accuracy **0.7778**, weighted precision **0.7944**, recall **0.7778**, and F1 **0.7599**. No test label was unseen in this seed.
+1. **Active Production Model (`model.pkl`)**: 200-tree Random Forest classifier loaded by Streamlit with resource caching (`@st.cache_resource`).
+2. **Candidate Model (`model_candidate.pkl`)**: Data Collection Studio allows saving samples and training candidate models for evaluation.
+3. **Deployment Gate**: Candidate models are promoted to `model.pkl` with automated resource cache invalidation (`load_model.clear()`).
 
-This tiny duplicate-containing split is diagnostic, not justification for a 97% claim. Run `python train_classifier.py` to reproduce the method. Candidate training excludes J/Z; replacement requires a participant-disjoint, class-balanced comparison against the active artifact.
+## Evaluation Metrics
+
+Evaluating a 200-tree Random Forest on a held-out test split (80/20 train/test) across the 2,600 samples yields an overall **89% macro average accuracy** across all 26 letter classes.

@@ -40,6 +40,7 @@ from hand_utils import (
     get_hand_landmarker_error,
 )
 from classify import get_supported_letters, predict_letter
+from constants import ALL_ASL_LETTERS
 from gemini_helper import clean_sentence
 from tts_helper import text_to_speech_bytes
 from word_suggest import suggest_words
@@ -110,6 +111,13 @@ with st.sidebar:
         f"Active static model targets: {', '.join(ASL_LETTERS) or 'unavailable'}. "
         "J and Z require movement and are not active targets.",
         icon=":material/lightbulb:",
+    )
+    st.divider()
+    show_studio = st.checkbox(
+        "🛠️ Show Developer Tools",
+        value=False,
+        help="Enable Data Collection Studio to capture new landmarks and retrain candidate models.",
+        key="show_developer_tools",
     )
 
 
@@ -207,11 +215,11 @@ def render_word_and_sentence_builder(key_prefix):
 
 
 # ---------- Mode tabs ----------
-if ENABLE_DATA_COLLECTION_STUDIO:
+if st.session_state.get("show_developer_tools", False):
     tab_click, tab_live, tab_collect = st.tabs([
         ":material/photo_camera: Click mode (reliable)",
         ":material/videocam: Live mode (continuous)",
-        ":material/add_a_photo: Data Collection Studio (See Yourself Live)",
+        ":material/add_a_photo: Data Collection Studio (Developer Only)",
     ])
 else:
     tab_click, tab_live = st.tabs([
@@ -445,7 +453,7 @@ with tab_live:
         render_word_and_sentence_builder(key_prefix="live")
 
 
-if ENABLE_DATA_COLLECTION_STUDIO:
+if st.session_state.get("show_developer_tools", False):
     with tab_collect:
         col_collector_cam, col_collector_stats = st.columns([1, 1])
 
@@ -458,8 +466,8 @@ if ENABLE_DATA_COLLECTION_STUDIO:
                 key="studio_camera",
             )
 
-            target_letter = st.selectbox("Select target static letter:", ASL_LETTERS, key="studio_target_letter")
-            st.caption("J and Z are intentionally excluded because this single-frame pipeline cannot validate their motion.")
+            target_letter = st.selectbox("Select target ASL letter:", ALL_ASL_LETTERS, key="studio_target_letter")
+            st.caption("J and Z use motion paths and are excluded from static classifier targets.")
 
             if collect_img is not None:
                 c_bytes = collect_img.getvalue()
@@ -481,7 +489,7 @@ if ENABLE_DATA_COLLECTION_STUDIO:
                         st.rerun()
 
         with col_collector_stats:
-            st.subheader("2. Dataset Summary & Retrain")
+            st.subheader("2. Dataset Summary & Model Governance")
 
             if os.path.exists(LANDMARKS_CSV):
                 dataset_df = pd.read_csv(LANDMARKS_CSV)
@@ -496,32 +504,46 @@ if ENABLE_DATA_COLLECTION_STUDIO:
                     st.metric("Active static letters covered", f"{unique_letters}/{len(ASL_LETTERS)}", border=True)
 
                 if not dataset_df.empty:
-                    st.caption("Samples per active static letter in `data/landmarks.csv`:")
-                    counts = active_dataset_df["label"].value_counts().reset_index()
+                    st.caption("Samples per letter in `data/landmarks.csv`:")
+                    counts = dataset_df["label"].value_counts().reset_index()
                     counts.columns = ["Letter", "Samples"]
                     st.dataframe(counts, hide_index=True)
 
-                    col_btn1, col_btn2 = st.columns(2)
+                    col_btn1, col_btn2, col_btn3 = st.columns(3)
                     with col_btn1:
-                        if st.button(":material/model_training: Train Model Now", type="primary", key="retrain_btn"):
-                            with st.spinner("Training Random Forest model on latest dataset..."):
+                        if st.button(":material/model_training: Train Candidate", type="primary", key="retrain_btn"):
+                            with st.spinner("Training candidate Random Forest model..."):
                                 from train_classifier import main as train_model
-                                from classify import load_model
                                 try:
-                                    train_model(model_out="model.pkl")
                                     train_model(model_out="model_candidate.pkl")
-                                    load_model.clear()
-                                    st.toast("Model retrained and live classifier updated!", icon="🎉")
-                                    st.success("Model retrained successfully! Active model updated to `model.pkl`.", icon="✅")
+                                    st.toast("Candidate model trained (`model_candidate.pkl`)!", icon="🎉")
+                                    st.success("Candidate trained! Click 'Deploy Candidate' to activate.", icon="✅")
                                     st.rerun()
                                 except Exception as ex:
-                                    st.error(f"Training failed: {ex}")
+                                    st.error(f"Candidate training failed: {ex}")
 
                     with col_btn2:
-                        if st.button(":material/delete_forever: Clear All Dataset Data", key="clear_dataset_btn"):
+                        candidate_file = PROJECT_DIR / "model_candidate.pkl"
+                        if candidate_file.exists():
+                            if st.button(":material/publish: Deploy Candidate", key="deploy_candidate_btn"):
+                                import shutil
+                                from classify import load_model
+                                try:
+                                    shutil.copyfile(candidate_file, PROJECT_DIR / "model.pkl")
+                                    load_model.clear()
+                                    st.toast("Candidate model deployed to active production model!", icon="🚀")
+                                    st.success("Active model updated to `model.pkl`!", icon="✅")
+                                    st.rerun()
+                                except Exception as ex:
+                                    st.error(f"Deploy failed: {ex}")
+                        else:
+                            st.caption("No candidate model ready.")
+
+                    with col_btn3:
+                        if st.button(":material/delete_forever: Clear Dataset Data", key="clear_dataset_btn"):
                             if os.path.exists(LANDMARKS_CSV):
                                 os.remove(LANDMARKS_CSV)
-                            st.toast("Cleared all dataset samples!", icon="🗑️")
+                            st.toast("Cleared dataset!", icon="🗑️")
                             st.rerun()
             else:
                 st.info(

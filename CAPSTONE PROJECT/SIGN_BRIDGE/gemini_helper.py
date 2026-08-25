@@ -1,7 +1,7 @@
 """
 gemini_helper.py
 Handles the Gemini API call that turns raw fingerspelled letters into a
-clean, natural sentence. This is the "AI Integration" piece of the rubric.
+clean, natural sentence using the modern google-genai SDK.
 
 Setup:
     1. Get an API key from https://aistudio.google.com/
@@ -11,7 +11,8 @@ Setup:
 """
 
 import streamlit as st
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 
 SYSTEM_PROMPT = """\
 You are a communication assistant embedded in SignBridge, an application \
@@ -39,8 +40,8 @@ no commentary.
 
 
 @st.cache_resource
-def _get_model():
-    """Configures Gemini and returns a GenerativeModel instance.
+def _get_client():
+    """Configures Gemini client using the modern google-genai SDK.
     Returns None if no API key is available."""
     try:
         api_key = st.secrets.get("GEMINI_API_KEY")
@@ -51,11 +52,7 @@ def _get_model():
         return None
 
     try:
-        genai.configure(api_key=api_key)
-        return genai.GenerativeModel(
-            model_name="gemini-2.0-flash",
-            system_instruction=SYSTEM_PROMPT,
-        )
+        return genai.Client(api_key=api_key)
     except Exception:
         return None
 
@@ -66,8 +63,8 @@ def clean_sentence(raw_text: str, word_count: int = 0) -> str:
     word_count: number of completed words in the sentence (used as context)
     returns: a cleaned, natural sentence, e.g. "Hello, how are you?"
     """
-    model = _get_model()
-    if model is None:
+    client = _get_client()
+    if client is None:
         st.info(
             "Gemini API key is not configured in `.streamlit/secrets.toml`. "
             "Displaying raw fingerspelled input directly.",
@@ -85,7 +82,13 @@ def clean_sentence(raw_text: str, word_count: int = 0) -> str:
     prompt = "\n".join(context_parts)
 
     try:
-        response = model.generate_content(prompt)
+        response = client.models.generate_content(
+            model="gemini-2.0-flash",
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                system_instruction=SYSTEM_PROMPT,
+            ),
+        )
         return response.text.strip()
     except Exception as e:
         # If Gemini fails (quota, network, etc.), return raw text
