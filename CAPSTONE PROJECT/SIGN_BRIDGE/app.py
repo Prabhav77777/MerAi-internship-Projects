@@ -31,7 +31,11 @@ from datetime import datetime
 PROJECT_DIR = Path(__file__).resolve().parent
 os.chdir(PROJECT_DIR)
 
-from hand_utils import extract_landmarks_from_bgr, bytes_to_bgr_image
+from hand_utils import (
+    bytes_to_bgr_image,
+    extract_landmarks_from_bgr,
+    get_hand_landmarker_error,
+)
 from classify import get_supported_letters, predict_letter
 from gemini_helper import clean_sentence
 from tts_helper import text_to_speech_bytes
@@ -236,10 +240,17 @@ with tab_click:
             if st.session_state.last_landmarks is not None and st.session_state.last_annotated_image is not None:
                 st.image(st.session_state.last_annotated_image, channels="BGR", caption="Detected hand landmarks")
             else:
-                st.warning(
-                    "No hand detected — try adjusting your position or lighting.",
-                    icon=":material/warning:",
-                )
+                hand_error = get_hand_landmarker_error()
+                if hand_error:
+                    st.error(
+                        f"Hand detection engine error: {hand_error}",
+                        icon=":material/error:",
+                    )
+                else:
+                    st.warning(
+                        "No hand detected — try adjusting your position or lighting.",
+                        icon=":material/warning:",
+                    )
 
     with col_status:
         st.subheader("2. Confirm & build")
