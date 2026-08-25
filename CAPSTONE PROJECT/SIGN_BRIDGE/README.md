@@ -1,8 +1,8 @@
 # SignBridge 🤟
 
-> **ASL Fingerspelling → Text → AI Cleanup → Speech**
-> 
-> An end-to-end accessibility solution converting American Sign Language (ASL) fingerspelling into natural spoken sentences.
+**ASL Fingerspelling → Text → AI Cleanup → Speech**
+
+An assistive communication web application that translates American Sign Language (ASL) fingerspelling into spoken English sentences in real-time.
 
 ---
 
@@ -15,9 +15,9 @@ Live application deployed on Streamlit Community Cloud:
 
 ## 🎯 Problem Statement
 
-People who communicate primarily through ASL fingerspelling often face daily communication barriers when interacting with individuals who do not understand sign language. Traditional communication methods like typing on a phone or writing on paper can be slow and disruptive to natural conversation flow. 
+People who communicate primarily using American Sign Language (ASL) fingerspelling often experience daily communication barriers when interacting with individuals who do not understand sign language. Traditional alternative communication methods—such as typing out words on a mobile phone or writing on paper—are often slow, inconvenient, and disruptive to natural conversational flow.
 
-SignBridge addresses this gap by providing an instant, vision-based fingerspelling recognition assistant that constructs full spoken sentences in real time.
+SignBridge addresses this challenge by providing an instant, computer vision-assisted fingerspelling recognition assistant. It detects static hand signs, builds words with intelligent autocomplete, cleans up recognition errors using Generative AI, and vocalizes full spoken sentences aloud.
 
 *(Note: SignBridge is designed as an assistive communication prototype for static ASL fingerspelling recognition and is not a medical device.)*
 
@@ -25,134 +25,169 @@ SignBridge addresses this gap by providing an instant, vision-based fingerspelli
 
 ## 💡 Solution
 
-SignBridge combines real-time computer vision, machine learning classification, dictionary-backed word suggestions, large language model (LLM) sentence refinement, and text-to-speech synthesis into a single web application:
+SignBridge combines real-time computer vision, machine learning classification, dictionary-backed word suggestions, large language model (LLM) sentence refinement, and text-to-speech synthesis into a single web application. 
 
-1. **Vision Recognition**: MediaPipe tracks 21 3D hand landmarks from a standard webcam stream.
-2. **Gesture Classification**: A Random Forest classifier predicts the intended ASL fingerspelled letter.
-3. **Interactive Sentence Builder**: Users build words and full sentences with offline prefix auto-completion.
-4. **AI Language Cleanup**: Google Gemini transforms raw, fingerspelled letter sequences into grammatically correct, natural sentences.
-5. **Speech Output**: gTTS (Google Text-to-Speech) vocalizes the final cleaned sentence aloud.
+The architecture enforces a strict, intentional separation of engineering responsibilities:
+
+1. **MediaPipe Hand Landmarker**: Extracts 21 3D geometric hand keypoints from raw camera frames.
+2. **Random Forest Classifier**: Classifies spatial hand landmark feature vectors into ASL letters.
+3. **Application Logic & Buffers**: Manages current word and sentence buffers with offline dictionary prefix suggestions.
+4. **Google Gemini LLM (`gemini-2.5-flash`)**: Reconstructs raw fingerspelled sequences into grammatically correct, natural sentences.
+5. **Google Text-to-Speech (gTTS)**: Synthesizes the final cleaned text into audible spoken audio.
 
 ---
 
 ## ✨ Key Features
 
-- **Click Mode**: Single-shot photo mode capturing hand landmarks reliably under diverse lighting conditions.
-- **Live Mode**: Real-time continuous camera feed using `streamlit-webrtc` with automatic stability detection, frame sampling, and cooldown buffer.
-- **Offline Word Suggestions**: Prefix-matching dictionary suggestions allowing one-click word completion.
-- **Interactive Sentence Builder**: Supports backspace, clear word, end word, and full reset controls.
-- **Gemini Language Refinement**: Custom system-prompted LLM that fixes missing/misrecognized letters, adds punctuation, and formats sentences without inventing new information.
-- **Fail-Soft Speech Synthesis**: Generates in-memory MP3 audio via gTTS; falls back gracefully to raw text if offline.
-- **Developer / Data Collection Studio**: Sidebar-toggleable studio for capturing new landmark samples, evaluating class balances, training isolated candidate models (`model_candidate.pkl`), and deploying them to production (`model.pkl`).
-- **Session Analytics**: Displays confidence metrics, letter frequency distributions, and interactive history logs.
+- 📸 **Click Mode**: Single-shot photo recognition with confidence feedback, visual landmark skeleton overlay, and manual correction controls.
+- 📹 **Live Mode**: Real-time continuous video stream using `streamlit-webrtc` with automatic stability detection (6-frame hold threshold) and cooldown buffer.
+- 💡 **Offline Word Suggestions**: Prefix-matching dictionary suggestions offering instant one-click word completion.
+- 📝 **Interactive Sentence Builder**: Complete editing buffer supporting `End word`, `Backspace`, `Clear word`, and full `Reset`.
+- 🤖 **Gemini AI Language Cleanup**: Powered by the modern `google-genai` SDK (`gemini-2.5-flash`), transforming noisy letter buffers into punctuated, natural sentences without inventing new information.
+- 🔊 **Text-to-Speech (gTTS)**: Generates in-memory MP3 audio bytes for instant browser playback.
+- 📊 **Session Analytics**: Real-time KPI metrics, letter frequency distributions, and interactive session history logs.
+- 🎨 **Data Collection Studio**: Developer-facing tool (toggleable from the sidebar) for capturing landmark samples, inspecting dataset statistics, training candidate models (`model_candidate.pkl`), and deploying them to production (`model.pkl`).
 
 ---
 
-## 🏗️ Architecture
+## 🏗️ System Architecture
 
 ```
-        📷 Web Camera Input
-                 │
-                 ▼
-    🖐️ MediaPipe Hand Landmarker (Tasks API)
-                 │  (21 3D Coordinates: x, y, z)
-                 ▼
-    📐 Origin & Scale Normalization
-                 │  (Wrist = (0,0,0), scaled by middle MCP distance)
-                 ▼
-    🔢 63 Numerical Feature Vector
-                 │
-                 ▼
-    🌲 Random Forest Classifier (200 trees)
-                 │
-                 ▼
-    🔤 Predicted ASL Letter (A–Z)
-                 │
-                 ▼
-    📝 Word & Sentence Buffer (with Offline Autocomplete)
-                 │
-                 ▼
-    🤖 Google Gemini API (gemini-2.5-flash)
-                 │  (System prompt + dynamic context)
-                 ▼
-    💬 Cleaned Natural Sentence
-                 │
-                 ▼
-    🔊 gTTS (Google Text-to-Speech Engine)
-                 │
-                 ▼
-    🔈 Audio Speech Output (.mp3)
+┌──────────────┐
+│  Web Camera  │
+└──────┬───────┘
+       │ (Raw Video Frame)
+       ▼
+┌──────────────────────────────────────────────┐
+│  MediaPipe Hand Landmarker (Tasks API)        │
+│  (Detects 21 3D Hand Landmarks: x, y, z)     │
+└──────┬───────────────────────────────────────┘
+       │ (21 3D Coordinates)
+       ▼
+┌──────────────────────────────────────────────┐
+│  Origin & Scale Normalization               │
+│  (Wrist -> (0,0,0); Scaled by Middle MCP)    │
+└──────┬───────────────────────────────────────┘
+       │ (63 Floating-Point Feature Vector)
+       ▼
+┌──────────────────────────────────────────────┐
+│  Random Forest Classifier (200 Trees)        │
+│  (Predicts ASL Letter Label & Confidence)    │
+└──────┬───────────────────────────────────────┘
+       │ (Predicted Letter A–Z)
+       ▼
+┌──────────────────────────────────────────────┐
+│  Word & Sentence Builder + Autocomplete      │
+│  (Manages Word/Sentence Buffers)             │
+└──────┬───────────────────────────────────────┘
+       │ (Raw Text Sequence)
+       ▼
+┌──────────────────────────────────────────────┐
+│  Google Gemini API (gemini-2.5-flash)        │
+│  (Language Cleanup, Punctuation, Grammar)    │
+└──────┬───────────────────────────────────────┘
+       │ (Cleaned Natural Sentence)
+       ▼
+┌──────────────────────────────────────────────┐
+│  gTTS Text-to-Speech Engine                  │
+│  (Synthesizes MP3 Audio Bytes)               │
+└──────┬───────────────────────────────────────┘
+       │ (Audio Bytes)
+       ▼
+┌──────────────┐
+│  Audio Speech│
+└──────────────┘
 ```
 
 ---
 
-## 🧠 Machine Learning Classification
+## 🔄 How SignBridge Works
 
-- **Landmark Extraction**: MediaPipe HandLandmarker extracts 21 keypoints per hand in 3D space $(x, y, z)$.
-- **Feature Preprocessing**:
-  - **Translation Invariance**: Wrist coordinate (Landmark 0) is subtracted from all 21 keypoints, placing origin at $(0,0,0)$.
-  - **Scale Invariance**: Keypoints are scaled by the distance between the wrist and middle-finger MCP joint (Landmark 9).
-  - Output feature vector: 63 normalized floating-point numbers.
-- **Classifier Architecture**: 
-  - Model: `RandomForestClassifier(n_estimators=200, random_state=42)`
-  - Input: 63 numerical features
-  - Target Output: 26 ASL alphabet letters (A–Z)
-- **Why Random Forest?**: Because feature extraction converts high-dimensional pixel images into 63 compact geometric features, Random Forest trains in seconds, requires no GPU inference acceleration, and runs reliably on cloud CPU servers.
+1. **Sign Selection**: The user selects a target sign and positions their hand in front of the camera (in either Click Mode or Live Mode).
+2. **Landmark Extraction**: MediaPipe isolates the hand and extracts 21 keypoint locations $(x, y, z)$.
+3. **Feature Preprocessing**: Coordinates are translated relative to wrist Landmark 0 $(0,0,0)$ and normalized for scale using the middle-finger MCP joint (Landmark 9).
+4. **Machine Learning Inference**: The 63-element feature vector is fed to a 200-tree Random Forest classifier, producing a letter prediction (e.g., `"H"`) and confidence score.
+5. **Word & Sentence Assembly**: The predicted letter is appended to the current word buffer. Word suggestions (e.g., `"Hello"`) appear automatically below the buffer.
+6. **AI Sentence Cleanup**: When the user clicks **Finish sentence**, the accumulated raw text (e.g., `"HELO HW ARE YOU"`) is sent to Google Gemini with a targeted system prompt, returning `"Hello, how are you?"`.
+7. **Audio Speech Playback**: gTTS converts the cleaned text into audio, allowing the browser to speak the sentence aloud.
+
+---
+
+## 🧠 Machine Learning Pipeline
+
+- **Feature Representation**: MediaPipe outputs 21 3D coordinates $(x, y, z)$ per hand.
+- **Normalization Methodology**:
+  - **Translation Invariance**: Wrist coordinate $p_0 = (x_0, y_0, z_0)$ is subtracted from all 21 keypoints ($p_i - p_0$), grounding the hand's origin at $(0,0,0)$ regardless of where it appears in the camera frame.
+  - **Scale Invariance**: All point coordinates are divided by the Euclidean distance between the wrist and the middle finger MCP joint $\|p_9 - p_0\|_2$, making predictions invariant to camera distance.
+  - Result: A compact 63-numerical feature vector.
+- **Random Forest Classifier**:
+  - `RandomForestClassifier(n_estimators=200, random_state=42)`
+  - Target Classes: 26 ASL alphabet letters (A–Z)
+  - Train/Test Split: 80% training, 20% held-out test evaluation
+- **Why Random Forest?**: Converting raw pixel images into 63 normalized geometric features reduces memory overhead, allows the classifier to train in seconds, requires zero GPU inference hardware, and executes deterministically on cloud CPU servers.
 
 ---
 
 ## 🤖 AI Integration & Prompt Engineering
 
-SignBridge maintains a strict functional separation between visual recognition and language processing:
-- **Visual Recognition (MediaPipe + Random Forest)**: Handles spatial hand geometry and letter predictions.
-- **Language Cleanup (Google Gemini `gemini-2.5-flash`)**: Handles grammar, punctuation, and recognition error correction.
+SignBridge uses a hybrid architecture that separates vision-based ML classification from Generative AI language processing:
 
-### System Instruction Strategy
+- **Local CV + Machine Learning (MediaPipe + Random Forest)**: Handles deterministic real-time visual gesture classification.
+- **Generative AI (Google Gemini `gemini-2.5-flash`)**: Handles natural language reconstruction, grammar correction, and punctuation.
 
-Gemini is configured with a strict system instruction to prevent hallucinations:
-- **Reconstruct Intended Words**: Fixes missing letters and common OCR/vision typos.
-- **Preserve Original Meaning**: Strictly forbidden from inventing facts or elaborating beyond spelled text.
-- **Short Input Handling**: Preserves single-word inputs without forcing full sentence expansions.
-- **Graceful Fallback**: If `GEMINI_API_KEY` is missing or network connectivity is lost, the application displays raw recognized text directly without crashing.
+### Why This Architecture Was Chosen
+- **Low Latency & High Speed**: Real-time frame classification happens locally/on-server in milliseconds without calling LLMs per frame.
+- **Cost & Quota Efficiency**: LLM calls occur only when the user finishes a sentence, avoiding unnecessary API usage.
+- **Targeted Utility**: Uses LLMs where they excel—understanding linguistic context, fixing vision typos, and adding punctuation.
+
+### Prompt Engineering Strategy
+Gemini is configured with a system instruction designed specifically for assistive fingerspelling:
+- **Spelling Error Correction**: Fixes misrecognized adjacent letters (e.g., `"PRABHV"` → `"Prabhav"`).
+- **Meaning Preservation**: Explicitly forbids inventing facts, adding unspelled information, or generating conversational filler.
+- **Short Input Handling**: Preserves short single-word inputs without expanding them into artificial full sentences.
+- **Fail-Soft Fallback**: If Gemini is unreachable or no API key is provided, SignBridge falls back directly to raw text without interrupting user communication.
 
 ---
 
-## 📊 Model Evaluation & Metrics
+## 📊 Model Evaluation
 
-The current production model (`model.pkl`) is evaluated on a held-out test split (80% train, 20% test) across 2,708 dataset samples:
+Metrics measured on a held-out test split (80/20 train/test) across the 2,708 dataset samples:
 
-- **Dataset Size**: 2,708 samples (108 webcam-captured + 2,600 standardized landmark samples)
-- **Classes**: 26 ASL letters (A–Z)
-- **Overall Test Accuracy**: **89%**
+- **Dataset Size**: 2,708 samples (108 camera-captured + 2,600 standardized landmark samples)
+- **Covered Classes**: 26 ASL letters (A–Z)
+- **Classifier**: 200-Tree Random Forest
+- **Overall Accuracy**: **89%**
 - **Macro Average Precision**: **89%**
 - **Macro Average Recall**: **89%**
 - **Macro Average F1-Score**: **89%**
 
 ---
 
+## 🎨 UI / UX
+
+- **Dual Interaction Modes**: Click Mode for deliberate photo-by-photo recognition; Live Mode for continuous WebRTC stream capturing.
+- **Visual Landmark Overlays**: Draws green skeleton connections and red keypoint nodes over hand gestures to provide visual feedback.
+- **Confidence Metrics**: Displays realtime confidence percentages along with delta indicator updates.
+- **Editable Session History**: Presents an interactive dataframe log of detected letters, timestamps, and confidence scores.
+- **Developer Tools Sidebar Toggle**: Includes a `🛠️ Show Developer Tools` checkbox in the sidebar to reveal or hide the Data Collection Studio on demand.
+
+---
+
 ## 🔐 Privacy & Security
 
-- **Secrets Management**: `GEMINI_API_KEY` is retrieved securely via `st.secrets` from `.streamlit/secrets.toml`. No API keys are hardcoded or committed to GitHub.
-- **Local Browser Camera Processing**: Video frames are processed in-memory. Image data is not stored permanently unless explicitly saved in the Developer Data Collection Studio.
-- **Fail-Soft Architecture**: External API failures do not halt the application.
+- **Secure Secrets Management**: `GEMINI_API_KEY` is loaded securely via `st.secrets` from `.streamlit/secrets.toml`. No API keys are hardcoded or committed to GitHub.
+- **In-Memory Camera Processing**: Camera frames are processed in-memory during application execution and are not stored unless explicitly saved in the developer studio.
+- **Fail-Soft Resilience**: Third-party API failures (Gemini or gTTS) return raw text and do not crash the core application.
 
 ---
 
 ## ☁️ Deployment
 
 - **Hosting Platform**: Streamlit Community Cloud
+- **Live URL**: [https://merai-internship-projects-6bv6pqfn6xojfxelonpxyb.streamlit.app/](https://merai-internship-projects-6bv6pqfn6xojfxelonpxyb.streamlit.app/)
 - **Entrypoint**: `CAPSTONE PROJECT/SIGN_BRIDGE/app.py`
 - **Root Requirements File**: `/requirements.txt`
-- **Asset Loading**: Uses `Path(__file__).resolve().parent` relative paths for resilient deployment on read-only cloud container filesystems.
-
----
-
-## ⚠️ Limitations
-
-- **Static Fingerspelling Focus**: Designed primarily for static ASL alphabet fingerspelling.
-- **Motion-Based Signs**: Letters J and Z involve dynamic movement paths; static single-frame captures approximate these signs.
-- **Lighting & Camera Quality**: Recognition accuracy depends on clear hand visibility and adequate background contrast.
-- **Network Dependencies**: AI sentence cleanup (Gemini) and audio generation (gTTS) require active internet access.
+- **Deterministic File Loading**: Employs `Path(__file__).resolve().parent` pathing to ensure asset loading works across read-only cloud container filesystems.
 
 ---
 
@@ -168,14 +203,14 @@ CAPSTONE PROJECT/SIGN_BRIDGE/
 ├── gemini_helper.py           # Google GenAI SDK integration & cleanup
 ├── tts_helper.py              # gTTS audio generation helper
 ├── word_suggest.py            # Offline prefix dictionary auto-completion
-├── train_classifier.py        # Random Forest model training script
+├── train_classifier.py        # Random Forest model candidate training script
 ├── collect_data.py            # Landmark sample saving helper
 ├── model.pkl                  # Production Random Forest classifier
 ├── model_candidate.pkl        # Isolated candidate model for testing
 ├── hand_landmarker.task       # MediaPipe float16 model file (~7MB)
 ├── data/
 │   └── landmarks.csv          # 2,708 landmark feature samples
-├── docs/                      # Architecture, ML evaluation, and design docs
+├── docs/                      # Technical design & architecture documentation
 └── tests/                     # Automated unittest suite
 ```
 
@@ -191,7 +226,7 @@ CAPSTONE PROJECT/SIGN_BRIDGE/
 
 2. **Install Dependencies**:
    ```bash
-   pip install -r ../../requirements.txt
+   pip install -r "../../requirements.txt"
    ```
 
 3. **Set Up Gemini API Key (Optional)**:
@@ -209,6 +244,25 @@ CAPSTONE PROJECT/SIGN_BRIDGE/
    ```bash
    python -m unittest discover tests
    ```
+
+---
+
+## ⚠️ Limitations
+
+- **Static Fingerspelling Focus**: Optimized for static ASL alphabet fingerspelling (letters A through Z).
+- **Motion-Based Signs**: Letters J and Z involve dynamic movement paths; static single-frame captures approximate these signs.
+- **Lighting & Camera Quality**: Recognition accuracy depends on clear hand visibility and adequate background contrast.
+- **Network Dependencies**: AI sentence cleanup (Gemini) and audio speech synthesis (gTTS) require active internet connectivity.
+- **Assistive Prototype**: SignBridge is an assistive communication prototype and not a medical or legal translation device.
+
+---
+
+## 🔮 Future Improvements
+
+- **Dataset Expansion**: Collect diverse hand landmark samples across varying lighting conditions and user demographics.
+- **Temporal Motion Classification**: Integrate LSTM or 3D CNN models for dynamic ASL signs involving movement.
+- **Offline Edge LLM Inference**: Explore local quantized SLMs (Small Language Models) for offline sentence cleanup.
+- **Multi-Language TTS**: Support multi-language text-to-speech output options.
 
 ---
 
