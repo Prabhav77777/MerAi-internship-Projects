@@ -12,14 +12,16 @@ import streamlit as st
 
 from constants import static_supported_letters
 
-MODEL_PATH = "model.pkl"
+from pathlib import Path
+
+MODEL_PATH = Path(__file__).resolve().parent / "model.pkl"
 
 
 @st.cache_resource
 def load_model():
     """Loads the trained RandomForest classifier, with graceful error
     handling if the model file is missing or incompatible."""
-    if not os.path.exists(MODEL_PATH):
+    if not MODEL_PATH.exists():
         st.error(
             f"Model file `{MODEL_PATH}` not found. "
             "Please run `python train_classifier.py` first to train the model."

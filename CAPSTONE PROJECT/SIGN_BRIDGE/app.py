@@ -19,6 +19,7 @@ Run locally with:  streamlit run app.py
 
 import csv
 import os
+import sys
 from pathlib import Path
 
 import streamlit as st
@@ -30,6 +31,8 @@ from datetime import datetime
 # relative paths from this file so local and cloud runs use the same files.
 PROJECT_DIR = Path(__file__).resolve().parent
 os.chdir(PROJECT_DIR)
+if str(PROJECT_DIR) not in sys.path:
+    sys.path.insert(0, str(PROJECT_DIR))
 
 from hand_utils import (
     bytes_to_bgr_image,
@@ -48,7 +51,8 @@ st.set_page_config(
     layout="wide",
 )
 
-LANDMARKS_CSV = "data/landmarks.csv"
+LANDMARKS_CSV = str(PROJECT_DIR / "data" / "landmarks.csv")
+IMAGE_SIGN_PATH = str(PROJECT_DIR / "image_sign.jpg")
 ASL_LETTERS = list(get_supported_letters())
 STABILITY_FRAMES = 6
 
@@ -59,7 +63,7 @@ def save_training_sample(landmarks, letter):
     training run."""
     if landmarks is None or letter not in ASL_LETTERS:
         return
-    os.makedirs("data", exist_ok=True)
+    os.makedirs(PROJECT_DIR / "data", exist_ok=True)
     file_exists = os.path.exists(LANDMARKS_CSV)
     with open(LANDMARKS_CSV, "a", newline="") as f:
         writer = csv.writer(f)
@@ -94,7 +98,7 @@ for key, value in defaults.items():
 with st.sidebar:
     st.subheader(":material/menu_book: ASL Sign Reference")
     st.caption("Fingerspelling guide (A–Z; J and Z use motion)")
-    st.image("image_sign.jpg", caption="ASL reference chart — StartASL", width="stretch")
+    st.image(IMAGE_SIGN_PATH, caption="ASL reference chart — StartASL", width="stretch")
     st.info(
         f"Active static model targets: {', '.join(ASL_LETTERS) or 'unavailable'}. "
         "J and Z require movement and are not active targets.",
@@ -110,7 +114,7 @@ st.caption(
 )
 
 with st.expander(":material/pan_tool: ASL Alphabet Sign Reference Board", expanded=False):
-    st.image("image_sign.jpg", caption="ASL reference chart — StartASL", width="stretch")
+    st.image(IMAGE_SIGN_PATH, caption="ASL reference chart — StartASL", width="stretch")
 
 # ---------- KPI status row ----------
 with st.container(horizontal=True):
