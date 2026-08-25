@@ -97,10 +97,11 @@ for key, value in defaults.items():
 # ---------- Sidebar ASL Reference Board ----------
 with st.sidebar:
     st.subheader(":material/menu_book: ASL Sign Reference")
-    st.caption("Fingerspelling guide (A–Z)")
+    st.caption("Fingerspelling guide (A–Z; J and Z use motion)")
     st.image(IMAGE_SIGN_PATH, caption="ASL reference chart — StartASL", width="stretch")
     st.info(
-        f"Active model targets ({len(ASL_LETTERS)} letters): {', '.join(ASL_LETTERS) or 'unavailable'}.",
+        f"Active static model targets: {', '.join(ASL_LETTERS) or 'unavailable'}. "
+        "J and Z require movement and are not active targets.",
         icon=":material/lightbulb:",
     )
 
@@ -443,8 +444,8 @@ with tab_collect:
             key="studio_camera",
         )
 
-        target_letter = st.selectbox("Select target letter:", ASL_LETTERS, key="studio_target_letter")
-        st.caption("Supports all 26 letters from A to Z.")
+        target_letter = st.selectbox("Select target static letter:", ASL_LETTERS, key="studio_target_letter")
+        st.caption("J and Z are intentionally excluded because this single-frame pipeline cannot validate their motion.")
 
         if collect_img is not None:
             c_bytes = collect_img.getvalue()
