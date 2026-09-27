@@ -4,7 +4,7 @@ import os
 from google import genai
 
 st.title("Chat History with AI")
-
+st.write("This app allows you to chat with an AI model and download the chat history.")
 st.write('created by prabhav')
 
 load_dotenv()  # Load environment variables from .env file
