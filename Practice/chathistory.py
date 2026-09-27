@@ -41,6 +41,7 @@ if user_input:
             response = st.session_state.gemini_chat.send_message(user_input)
         except Exception as e:
             ai_response = f"❌ Error: {e}"
+            
 
     with st.chat_message("ai"):
         st.markdown(response.text)
