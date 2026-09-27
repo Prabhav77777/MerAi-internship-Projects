@@ -1,6 +1,7 @@
 import requests as rq
 import streamlit as st
 st.title("Image Generation with AI")
+st.write("This app allows you to generate images in different styles based on your prompt.")
 st.sidebar.title("styles available")
 style = st.sidebar.write("anime")
 style = st.sidebar.write("cartoon")
