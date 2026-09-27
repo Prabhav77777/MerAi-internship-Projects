@@ -275,4 +275,8 @@ MerAi-internship-Projects/
 Made with ❤️ by <b>Prabhav Agrawal</b> — MirAI School of Technology internship<br/>
 <a href="https://github.com/Prabhav77777/MerAi-internship-Projects">GitHub Repo</a> ·
 <a href="https://merai-internship-projects-6bv6pqfn6xojfxelonpxyb.streamlit.app/">SignBridge Live Demo</a>
+<<<<<<< HEAD
 </p>
+=======
+</p>
+>>>>>>> f184d20d959853abe31f19a0221d7bbb4687407b
