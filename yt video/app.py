@@ -18,7 +18,7 @@ from langchain.chains import RetrievalQA
 
 load_dotenv()
 
-st.set_page_config(page_title="Chat with YouTube")
+st.set_page_config(page_title="--Chat with YouTube--")
 
 st.title("🎥 Chat with YouTube Video")
 
