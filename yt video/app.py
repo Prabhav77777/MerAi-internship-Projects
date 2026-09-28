@@ -97,7 +97,7 @@ if url:
 
                 answer = qa.run(question)
 
-            st.subheader("Answer")
+            st.subheader("Answer-")
 
             st.write(answer)
 
