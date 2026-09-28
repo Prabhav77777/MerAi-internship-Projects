@@ -7,6 +7,7 @@ import json
 from pdf_generator import generate_resume_pdf
 import base64
 load_dotenv()
+
 st.markdown("""
 <style>
 
