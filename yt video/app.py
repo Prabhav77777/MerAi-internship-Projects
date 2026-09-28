@@ -45,7 +45,7 @@ if url:
     video_id = get_video_id(url)
 
     if not video_id:
-        st.error("Invalid YouTube URL")
+        st.error("Invalid youTube URL")
         st.stop()
 
     try:
